@@ -49,6 +49,8 @@
 #   .5.Cleaned up some extra debugging code that I left behind. This fixes some
 #   minor issues with backslashes appearing in the html on utf-8 encoded pages.
 #   .6.Fixed bug that caused webby to run twice when using the !webby command.
+#   .7.Pattern based url ignore system implemented. Patterns and enable/disable can be
+#   found in config section.
 #
 ################################################################################
 # Original Webby Author information.                                
