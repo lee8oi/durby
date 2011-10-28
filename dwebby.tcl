@@ -139,7 +139,15 @@ variable webbyShowMisdetection 0
 # post url information when one is found.
 variable webbyWatchForUrls 1
 
-# <--- end of config; script begins
+# ignore urls matching ignore pattern?
+# enabling this option will set webby to ignore urls that match
+# any pattern in the patterns list.
+variable webbyPatternIgnore 1
+
+# What patterns should be ignored?
+# patterns can be any valid 'string match' pattern. Urls matching
+# any of these patterns will be ignored if webbyPatternIgnore option is
+# enabled.
 variable patterns {
   *.jpg
   *.png
@@ -154,6 +162,9 @@ variable patterns {
   *.bmp
   #*porn.com*
 }
+################################################################################
+# END CONFIGURATION - EXPERTS ONLY BELOW!
+################################################################################
 package require http
 package require tls
 ::http::register https 443 [list ::tls::socket -require 0 -request 1]
@@ -184,13 +195,16 @@ proc weburlwatch {nick host user chan text} {
     && ($::webbyWatchForUrls > 0)} {
     foreach word [split $text] {
       if {($word == "!webby")} {
-          break
+          return 0
       } else {
         if {[string length $word] >= $weburlwatch(length) && \
         [regexp {^(f|ht)tp(s|)://} $word] && ![regexp {://([^/:]*:([^/]*@|\d+(/|$))|.*/\.)} $word]} {
-          foreach pattern $::patterns {
-            if {[string match -nocase $pattern $word]} {
-              break
+          #check ignore list
+          if {$::webbyPatternIgnore > 0} {
+            foreach pattern $::patterns {
+              if {[string match -nocase $pattern $word]} {
+                return 0
+              }
             }
           }
           set weburlwatch(last) [unixtime]
@@ -225,6 +239,14 @@ proc webby {nick uhost handle chan site} {
     }
     set w5 0
     regsub -nocase -- {--regexp .*?--} $site "" site
+  }
+  #check ignore list
+  if {$::webbyPatternIgnore > 0} {
+    foreach pattern $::patterns {
+      if {[string match -nocase $pattern $site]} {
+        return 0
+      }
+    }
   }
   if {[string match "*://*" $site]} { set site [join [lrange [split $site "/"] 2 end] "/"] }
   if {[string equal "-" [string index [set site [string map {"  " " "} [string trim $site]]] 0]]} {
