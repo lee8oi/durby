@@ -140,7 +140,20 @@ variable webbyShowMisdetection 0
 variable webbyWatchForUrls 1
 
 # <--- end of config; script begins
-
+variable ignore_patterns {
+  *.jpg
+  *.png
+  *.pdf
+  *.gif
+  *.mov
+  *.zip
+  *.exe
+  *.tar
+  *.gz
+  *.rar
+  *.bmp
+  #*porn.com*
+}
 package require http
 package require tls
 ::http::register https 443 [list ::tls::socket -require 0 -request 1]
