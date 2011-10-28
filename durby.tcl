@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 # http://www.gnu.org/licenses/
 #
-# Dwebby v0.1
+# Durby v0.1
 # by: <lee8oiAtgmail><lee8oiOnfreenode>
 #
 # This is an unofficial version of 'webby'.
@@ -36,7 +36,7 @@
 #       [--post] [--override] [--nostrip] [--swap]              
 #       [--regexp regexp-here--]                                
 #
-# Dwebby Changelog:
+# Durby Changelog:
 # v0.1
 #   .1.Cleaned up code indenting. Took care of some escapes needed in broken
 #   strings. Fixed a couple minor brace issues.
@@ -137,7 +137,7 @@ variable webbyFixDetection 2
 variable webbyShowMisdetection 0
 
 # grab urls from channel messages?
-# this will set dwebby to watch for urls in channel and
+# this will set Durby to watch for urls in channel and
 # post url information when one is found.
 variable webbyWatchForUrls 1
 
@@ -916,4 +916,4 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 
-putlog "Dwebby v0.1 has been loaded."
+putlog "Durby v0.1 has been loaded."
