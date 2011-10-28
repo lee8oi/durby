@@ -140,7 +140,7 @@ variable webbyShowMisdetection 0
 variable webbyWatchForUrls 1
 
 # <--- end of config; script begins
-variable ignore_patterns {
+variable patterns {
   *.jpg
   *.png
   *.pdf
@@ -188,6 +188,11 @@ proc weburlwatch {nick host user chan text} {
       } else {
         if {[string length $word] >= $weburlwatch(length) && \
         [regexp {^(f|ht)tp(s|)://} $word] && ![regexp {://([^/:]*:([^/]*@|\d+(/|$))|.*/\.)} $word]} {
+          foreach pattern $::patterns {
+            if {[string match -nocase $pattern $word]} {
+              break
+            }
+          }
           set weburlwatch(last) [unixtime]
           set weburlwatch(titlegrab) 1
           set urtitle [webby $nick $host $user $chan $word]
