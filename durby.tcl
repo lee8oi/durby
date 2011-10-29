@@ -174,6 +174,32 @@ variable patterns {
 #<speechles> you call validate instead of full http::geturl
 #<speechles> then if passes, attempt geturl again without the -validate 1 option
 #<speechles> depending on mime type given in the meta array
+#<speechles> webby keeps 4 charsets
+#<speechles> state(charset) http package gives it
+#<speechles> it cleans that up, to char
+#<speechles> then char2 metas give it, it cleans that up to char3
+#<speechles> when char and char3 differ
+#<speechles> you should encoding convertfrom char3
+#<speechles> otherwise wont show up right, this is known as the conflict
+#<speechles> so the easy way to do this
+#<speechles> is always... if char3 is there, encoding convertfrom it
+#<speechles> otherwise encoding convertfrom char2
+#<speechles> or convertto char2 rather
+#<speechles> the problem is http package
+#<speechles> when it gets the encoding right
+#<speechles> the socket fconfigured correct
+#<speechles> the encoding matches, what it really is
+#<speechles> you can encoding convertto that encoding just fine
+#<speechles> but.. if it was fconfigured incorrectly
+#<speechles> with teh wrong encoding say
+#<speechles> http package thinks its iso8859-1
+#<speechles> when really, its cp1251
+#<speechles> you have to convertfrom cp1251
+#<speechles> rather than convertto
+#<speechles> because the socket got it wrong... so you have to undo its damage
+#<speechles> after u convertfrom cp1251
+#<speechles> you would convertto utf-8 if the [system encoding] is not utf-8
+#<speechles> this fixes it for unpatched bot
 package require http
 package require tls
 ::http::register https 443 [list ::tls::socket -require 0 -request 1]
