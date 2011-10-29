@@ -170,6 +170,10 @@ variable patterns {
 # todo: fix gzip handling of utf-8 encoded urls
 #   2. Allow title only or less verbose output options
 #   3. Fix system to check header for content in case of image links/etc.
+#   3. Fix character garble in descriptions.
+#<speechles> you call validate instead of full http::geturl
+#<speechles> then if passes, attempt geturl again without the -validate 1 option
+#<speechles> depending on mime type given in the meta array
 package require http
 package require tls
 ::http::register https 443 [list ::tls::socket -require 0 -request 1]
