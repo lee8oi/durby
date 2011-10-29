@@ -167,6 +167,9 @@ variable patterns {
 ################################################################################
 # END CONFIGURATION - EXPERTS ONLY BELOW!
 ################################################################################
+# todo: fix gzip handling of utf-8 encoded urls
+#   2. Allow title only or less verbose output options
+#   3. Fix system to check header for content in case of image links/etc.
 package require http
 package require tls
 ::http::register https 443 [list ::tls::socket -require 0 -request 1]
@@ -192,6 +195,7 @@ bind pub - !webby webby
 bind pubm weburlwatch(pubmflags) {*://*} weburlwatch
 
 proc weburlwatch {nick host user chan text} {
+  # watch for web urls in channel
   variable weburlwatch
   if {([channel get $chan webby]) && ([expr {[unixtime] - $weburlwatch(delay)}] > $weburlwatch(last))\
     && ($::webbyWatchForUrls > 0)} {
@@ -324,7 +328,7 @@ proc webby {nick uhost handle chan site} {
     set url $fullquery ; set query ""
   }
   if {![string match -nocase "::http::*" $error]} {
-    set strtotitle [string totitle [string map {"\n" " | "} $error]] ;#moved outside of quotes due to conflict (lee8oi)
+    set strtotitle [string totitle [string map {"\n" " | "} $error]] 
     putserv "privmsg $chan :\002webby\002: $strtotitle \( $fullquery \)"
     return 0
   }
@@ -333,7 +337,7 @@ proc webby {nick uhost handle chan site} {
     putserv "privmsg $chan :\002webby\002: [string totitle [::http::status $http]] \( $fullquery \)"
     return 0
   }
-  upvar #0 $http state ;# pass reference of http to state
+  upvar #0 $http state
   if {![info exists state(meta)]} { putserv "privmsg $chan :\002webby\002: unsupported URL error \( $fullquery \)" ; return 0 }
   set redir [::http::ncode $http]
   # iterate through the meta array
@@ -349,7 +353,7 @@ proc webby {nick uhost handle chan site} {
   } else {
     set cookies ""
   }
-  # REDIRECT ?
+  # REDIRECT
   set r 0
   while {[string match "*${redir}*" "307|303|302|301" ]} {
     # redirect code found.
@@ -360,6 +364,7 @@ proc webby {nick uhost handle chan site} {
         if {![string match "http*" $value]} {
           # location is not http* url
           if {![string match "/" [string index $value 0]]} {
+            # first char is not a '/' 
             set value "[join [lrange [split $url "/"] 0 2] "/"]/$value"
           } else {
             set value "[join [lrange [split $url "/"] 0 2] "/"]$value"
@@ -376,8 +381,8 @@ proc webby {nick uhost handle chan site} {
             }
           }
         }
-        set mapvar [list " " "%20"] ;#externalized this due to quote & brace conflicts.(lee8oi)
-        set strtrimvar "Referer $url $gzp" ;#externalized this due to quote & brace conflicts.(lee8oi)
+        set mapvar [list " " "%20"] 
+        set strtrimvar "Referer $url $gzp" 
         if {[info exists w10]} {
           # w10 is --validate
           if {[string length $cookies]} {
@@ -403,8 +408,7 @@ proc webby {nick uhost handle chan site} {
         }
         set redir [::http::ncode $http]
         set url [string map {" " "%20"} $value]
-        #putserv "privmsg speechles :url - $url"
-        upvar #0 $http state ;#passing reference to state again.
+        upvar #0 $http state
         if {[incr r] > 10} { putserv "privmsg $chan :\002webby\002: redirect error (>10 too deep) \( $url \)" ; return }
         # iterate through the meta array
         #if {![string length cookies]} {
@@ -429,28 +433,32 @@ proc webby {nick uhost handle chan site} {
     set html [::http::data $http]
   } else {
     # no --post
-    set stcharset $state(charset)
     set html [::http::data $http]
-    if {![string equal -nocase "utf-8" $stcharset]} {
-      #convert character encoding to unicode.
-      if {[lsearch -exact [encoding names] $stcharset] != -1} {
-				set html [encoding convertfrom $stcharset $html]
-			}
+    if {![string equal -nocase "utf-8" $state(charset)} {
+      # Non utf-8 character set found. Convert to unicode.
+      if {[lsearch -exact [encoding names] $state(charset)] != -1} {
+        set html [encoding convertfrom $state(charset) $html]
+      }
     } else {
-      if {[lsearch -exact [encoding names] $stcharset] != -1} {
-        set html [encoding convertto $stcharset $html]
+      if {[lsearch -exact [encoding names] $state(charset)] != -1} {
+        set html [encoding convertto $state(charset) $html]
       }
     }
   }
   set bl [string bytelength $html]
   set nc [::http::ncode $http] ; set flaw "" 
   if {![info exists webbyNoGzip]} {
+    # Gzip is available.
     foreach {name value} $state(meta) {
       if {[regexp -nocase ^Content-Encoding$ $name]} {
+        # content-encoding meta found.
         if {[string equal -nocase "gzip" $value] && [string length $html]} {
-      if {![info exists webbyTrf]} {
+          # encoding is gzip.
+          if {![info exists webbyTrf]} {
+            # no trf available.
             set bl "$bl bytes (gzip); [string bytelength [set html [zlib inflate [string range $html 10 [expr { [string length $html] - 8 } ]]]]]"
           } else {
+            # trf available.
             set bl "$bl bytes (gzip); [string bytelength [set html [zip -mode decompress -nowrap 1 [string range $html 10 [expr { [string length $html] - 8 } ]]]]]"
           }
           break
@@ -458,6 +466,7 @@ proc webby {nick uhost handle chan site} {
       }
     }
   }
+  # Grab character set from html.
   if {[regexp -nocase {"Content-Type" content=".*?; charset=(.*?)".*?>} $html - char]} {
     set char [string trim [string trim $char "\"' /"] {;}]
     regexp {^(.*?)"} $char - char
@@ -477,20 +486,23 @@ proc webby {nick uhost handle chan site} {
   }
   set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
   if {[string equal $char $state(charset)] && [string equal $char $char2] && ![string equal -nocase "none given" $char]} {
+    # no character set conflicts.
     set char [string trim $state(charset) {;}]
     set flaw ""
   } else {
+    # Conflicting character sets likely. Attempt resolution.
     if {![string equal -nocase $char2 $char3] && ![string equal -nocase "none given" $char2] && $::webbyFixDetection > 0} {
+      # character sets are definitly not the same, and not set to none.
       switch $::webbyFixDetection {
         1 {if {![info exists w8]} {
-            # w8 is --swap
+            # w8 is --swap which isn't in use.
             if {$::webbyShowMisdetection > 0} {
               set flaw "\002webby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict."
             }
             set html [webbyConflict $html $char2 $char3 [info exists w9]]
             set char [string trim $char3 {;}]
           } else {
-            # --swap
+            # --swap in use.
             if {$::webbyShowMisdetection > 0} {
               set flaw "\002webby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict."
             }
@@ -499,14 +511,14 @@ proc webby {nick uhost handle chan site} {
           }
         }
         2 {if {![info exists w8]} {
-            # w8 is --swap
+            # w8 is --swap. Is not in use.
             if {$::webbyShowMisdetection > 0} {
               set flaw "\002webby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict."
             }
             set html [webbyConflict $html $char3 $char2 [info exists w9]]
             set char [string trim $char2 {;}]
           } else {
-            # --swap
+            # --swap in use.
             if {$::webbyShowMisdetection > 0} {
               set flaw "\002webby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict."
             }
@@ -516,6 +528,7 @@ proc webby {nick uhost handle chan site} {
         }
       }
     } else {
+      # char sets are the same or char2 is 'none given' or webbyFixDetection is off.
       set char [string trim $char3 {;}]
       set flaw ""
     } 
@@ -524,14 +537,15 @@ proc webby {nick uhost handle chan site} {
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
   switch $::webbyDynEnc {
-    2 { 
+    2 {
+      # force encoding to whatever ::webbyEnc is set to.
       set html [encoding convertto [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $::webbyEnc]]
-      #set html [string map {"\\" ""} $html] ;#small hack to clean up extra backslashes until I can pinpoint the problem.
     }
   }
-  set red ""; if {$r > 0} { set red "; $r redirects" }
+  set red ""; if {$r > 0} { set red "; $r redirects" } ;# set number of redirects and create redirect info msg.
   foreach {name value} $state(meta) {
     if {[string match -nocase "content-type" $name]} {
+      # content type found. grab value and format type info msg with charset 
       set spltval [split $value ";"]
       append type "; [lindex $spltval 0]; $char; ${bl} bytes$red"
       continue
