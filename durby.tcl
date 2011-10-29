@@ -434,7 +434,7 @@ proc webby {nick uhost handle chan site} {
   } else {
     # no --post
     set html [::http::data $http]
-    if {![string equal -nocase "utf-8" $state(charset)} {
+    if {![string equal -nocase "utf-8" $state(charset)]} {
       # Non utf-8 character set found. Convert to unicode.
       if {[lsearch -exact [encoding names] $state(charset)] != -1} {
         set html [encoding convertfrom $state(charset) $html]
