@@ -1,3 +1,9 @@
+################################################################################
+# Original Webby Author information.                                
+# Copyleft (C) 2009-2011, speechles                             
+# imspeechless@gmail.com                                        
+# October 5th, 2011                                             
+################################################################################
 ##################################################################################
 # Copyright ©2011 lee8oi@gmail.com
 #
@@ -174,6 +180,7 @@ variable patterns {
 #<speechles> you call validate instead of full http::geturl
 #<speechles> then if passes, attempt geturl again without the -validate 1 option
 #<speechles> depending on mime type given in the meta array
+#speechles> thats his utf-8 patched bot
 #<speechles> webby keeps 4 charsets
 #<speechles> state(charset) http package gives it
 #<speechles> it cleans that up, to char
