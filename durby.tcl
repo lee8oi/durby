@@ -694,6 +694,7 @@ proc webby {nick uhost handle chan site} {
   }
   if {($::webbyRegShow > 0) || ![info exists w5]} {
     set title [webbydescdecode $title $char]
+    if {($title == "")} {set title "Untitled"}
     set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
     set result ""
     if {[info exists vf] || ($::durbyVerbose > 0)} {
@@ -714,7 +715,9 @@ proc webby {nick uhost handle chan site} {
     if {![info exists w3]} {
       if {[info exists vf] || ($::durbyVerbose > 0)} {
         foreach line [line_wrap [webbydescdecode $desc $char]] {
-          putserv "privmsg $chan :~ $line"
+          if {($line != "")} {
+            putserv "privmsg $chan :~ $line"
+          }
         }
       }
     }
