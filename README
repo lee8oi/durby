@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.2 + #
+#                                                                    + 0.2.3 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -29,6 +29,9 @@
 # Verbose Mode - Can be enabled by default or used on demand with the          #
 # --verbose switch to append the urls type info and description to the results.#
 # Durby defaults to simply showing title and tiny url.                         #
+#                                                                              #
+# Title Collection - Enabled by default. Sets durby to collect titles and      #
+# display the results at once instead of posting each result individually      #
 #                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
