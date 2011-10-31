@@ -1,8 +1,8 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.1 + #
+#                                                                    + 0.2.2 + #
 #                                                                    +-------+ #
-# Durby                                                                        #
+# Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
 # This is a fork of 'webby' script. See original header below for more         #
 # information.                                                                 #
@@ -26,11 +26,15 @@
 # Pattern Ignore - Allows users to configure the script to ignore urls that    #
 # match predefined ignore patterns.                                            #
 #                                                                              #
+# Verbose Mode - Can be enabled by default or used on demand with the          #
+# --verbose switch to append the urls type info and description to the results.#
+# Durby defaults to simply showing title and tiny url.                         #
+#                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
 #       [--post] [--override] [--nostrip] [--swap]                             #
-#       [--regexp regexp-here--]                                               #
+#       [--regexp regexp-here--]  [--verbose]                                  #
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
