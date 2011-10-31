@@ -655,7 +655,9 @@ proc webby {nick uhost handle chan site} {
     }
   }
   if {($::webbyRegShow > 0) || ![info exists w5]} {
-    putserv "privmsg $chan :[webbydescdecode $title $char] \( [webbytiny $fullquery $::webbyShortType] \)$type"
+    set title [webbydescdecode $title $char]
+    set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
+    putserv "privmsg $chan :<> $title {$tiny}$type"
     if {($::webbyheader > 0 && [llength $s]) || [info exists w1]} { putserv "privmsg $chan :[join [lsort -decreasing $s] "; "] " }
     if {($::webbyXheader > 0 && [llength $sx]) || [info exists w2]} { putserv "privmsg $chan :[join [lsort -decreasing $sx] "; "] " }
     if {($::webbydoc > 0 && [string length $hv]) || [info exists w3]} {
