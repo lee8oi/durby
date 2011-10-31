@@ -619,8 +619,10 @@ proc webby {nick uhost handle chan site} {
     2 { set html [incithencode $html [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $::webbyEnc]] }
   }
   set red ""; if {$r > 0} { set red "; $r redirects" }
+  set doctype ""
   foreach {name value} $state(meta) {
     if {[string match -nocase "content-type" $name]} {
+      set doctype [string trim [lindex [split $value] 0] ";"]
       append type "; [lindex [split $value ";"] 0]; $char; ${bl} bytes$red"
       continue
     }
@@ -628,6 +630,7 @@ proc webby {nick uhost handle chan site} {
     if {[string match -nocase "x-*" $name]} { lappend sx "\002$name\002=$value" ; continue}
     lappend s "\002$name\002=$value"
   }
+  putlog "doctype after: $doctype"
   append type " \)" ; set e ""
   ::http::cleanup $http
   regsub -all {(?:\n|\t|\v|\r|\x01)} $html " " html
@@ -694,7 +697,9 @@ proc webby {nick uhost handle chan site} {
   }
   if {($::webbyRegShow > 0) || ![info exists w5]} {
     set title [webbydescdecode $title $char]
-    if {($title == "")} {set title "Untitled"}
+    if {[string match -nocase "no title" $title] || ($title == "") && [info exists doctype]} {
+      set title "$doctype"
+    }
     set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
     set result ""
     if {[info exists vf] || ($::durbyVerbose > 0)} {
