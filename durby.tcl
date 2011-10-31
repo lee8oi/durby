@@ -21,11 +21,18 @@
 # Durby adds these new features & changes to webby:                            #
 #                                                                              #
 # Urlwatch - for grabbing urls from channel messages and returning the         #
-# information automattically.                                                  #
+# information automatically.                                                  #
 #                                                                              #
 # Pattern Ignore - Allows users to configure the script to ignore urls that    #
-# matchpredefined ignore patterns.                                             #
+# match predefined ignore patterns.                                             #
 #                                                                              #
+# Usage:                                                                       #
+#   .chanset #channel +durby                                                   #
+#   !durby website.here.com [--html] [--header] [--xheader]                    #
+#       [--post] [--override] [--nostrip] [--swap]                             #
+#       [--regexp regexp-here--]                                               #
+#                                                                              #
+#   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
 ################################################################################
 #!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
@@ -210,9 +217,9 @@ variable durbyPatternIgnore  1
 #                           +-+
 
 # What patterns should be ignored?
-# patterns can be any valid 'string match' pattern. Urls matching
+# patterns can be any valid string match (glob) pattern. Urls matching
 # any of these patterns will be ignored if webbyPatternIgnore option is
-# enabled.
+# enabled
 variable patterns {
   *.jpg
   *.png
@@ -231,8 +238,6 @@ variable patterns {
 ################################################################################
 #!!!!!!!!!!!!!!!!!!!!!!!!!!EXPERTS ONLY BELOW !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 ################################################################################
-#source "http.tcl"
-#package require http 2.5.3
 package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
 if {([lsearch [info commands] zlib] == -1) && ([catch {package require zlib} error] !=0)} {

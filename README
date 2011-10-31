@@ -1,57 +1,102 @@
 ################################################################################
-# Original Webby Author information.                                
-# Copyleft (C) 2009-2011, speechles                             
-# imspeechless@gmail.com                                        
-# October 5th, 2011                                             
+# Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
+#                                                                    + 0.2.1 + #
+#                                                                    +-------+ #
+# Durby                                                                        #
+#                                                                              #
+# This is a fork of 'webby' script. See original header below for more         #
+# information.                                                                 #
+#                                                                              #
+# Theres a short story here. Webby script is a project by speechles designed   #
+# to handle the task of grabbing information from web links and testing regexp #
+# in channels. It was used to replace the problematic http information         #
+# grabbing code in other scripts such as the unofficial Incith google script.  #
+# 'Durby' was originally a project called durltitle which was intended to be a #
+# script that grabs urls from channel messages and returns the title content.  #
+# After for working with speechles in fixing the elusive utf-8 bugs in webby   #
+# I decided it would be smarter to base a title grabber script on a proven     #
+# system instead of reinventing the wheel. So Durltitle merged with Webby and  #
+# thus created 'Durby'.                                                        #
+#                                                                              #
+# Durby adds these new features & changes to webby:                            #
+#                                                                              #
+# Urlwatch - for grabbing urls from channel messages and returning the         #
+# information automatically.                                                  #
+#                                                                              #
+# Pattern Ignore - Allows users to configure the script to ignore urls that    #
+# match predefined ignore patterns.                                             #
+#                                                                              #
+# Usage:                                                                       #
+#   .chanset #channel +durby                                                   #
+#   !durby website.here.com [--html] [--header] [--xheader]                    #
+#       [--post] [--override] [--nostrip] [--swap]                             #
+#       [--regexp regexp-here--]                                               #
+#                                                                              #
+#   Or simply post a url in channel if urlwatch is on (is by default)          #
+#                                                                              #
 ################################################################################
-##################################################################################
-# Copyright ©2011 lee8oi@gmail.com
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-# http://www.gnu.org/licenses/
-#
-# Dwebby v0.1
-# by: <lee8oiAtgmail><lee8oiOnfreenode>
-#
-# This is an unofficial version of 'webby'.
-#
-# This script will display titles and other relevant information
-# from links given in irc channels. Can also be used to test    
-# and contstruct regular expression in channel.                 
-#
-# NOTE: Theres alot of languages and characters out there. To make best use of
-# this script all eggdrop bots *version 1.6.20 and Under will need to be patched
-# to utf-8 encoding as instructed on the following link: http://eggwiki.org/Utf-8
-# Non-patched bots may still get some use of this script but some characters from
-# certain languages may not show correctly.
-#
-# * eggdrop version 1.8+ is rumored to have encoding issues corrected. Eliminating
-# the need to patch the bot.
-#
-# Usage:                                                        
-#   .chanset #channel +webby                                    
-#   !webby website.here.com [--html] [--header] [--xheader]     
-#       [--post] [--override] [--nostrip] [--swap]              
-#       [--regexp regexp-here--]                                
-#
-# Dwebby Changelog:
-# v0.1
-#   .1.Cleaned up code indenting. Took care of some escapes needed in broken
-#   strings. Fixed a couple minor brace issues.
-#   .2.Fixed utf-8 issues for utf-8 patched eggdrop bots. Tested in 1.6.20.
-#   script is now primarily for patched bots.
-#   .3.Added url grabber. Script can now be set to watch for urls in channels 
-#   with the 'webby' flag set.
-#   .4.Added tls require and https fix.(noticed that when I disabled the ONLY other
-#   script that used tls; Webby lost https url support).
-#   .5.Cleaned up some extra debugging code that I left behind. This fixes some
-#   minor issues with backslashes appearing in the html on utf-8 encoded pages.
-#   .6.Fixed bug that caused webby to run twice when using the !webby command.
+#!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+#!!!!!#################################################################!!!!!!!!#
+#!!!!!# webby - web link information script                      v1.6 #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!# This script will display titles and other relevant information#!!!!!!!!#
+#!!!!!# from links given in irc channels. Can also be used to test    #!!!!!!!!#
+#!!!!!# and contstruct regular expression in channel.                 #!!!!!!!!#
+#!!!!!# Usage:                                                        #!!!!!!!!#
+#!!!!!#   .chanset #channel +webby                                    #!!!!!!!!#
+#!!!!!#   !webby website.here.com [--html] [--header] [--xheader]     #!!!!!!!!#
+#!!!!!#       [--post] [--override] [--nostrip] [--swap]              #!!!!!!!!#
+#!!!!!#       [--regexp regexp-here--]                                #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!# ChangeLog:                                                    #!!!!!!!!#
+#!!!!!#    v1.6 - Corrected dynamic encoding conflict resolution.     #!!!!!!!!#
+#!!!!!#             able to identify and correct 100% of header       #!!!!!!!!#
+#!!!!!#             charset vs meta charset conflicts.                #!!!!!!!!#
+#!!!!!#    v1.5 - Added dynamic encoding conflict resolution.         #!!!!!!!!#
+#!!!!!#             work-in-progress .. may be incorrect..            #!!!!!!!!#
+#!!!!!#             ..seems to work in a few tests... crosses fingers #!!!!!!!!#
+#!!!!!#    v1.4 - Added detection for http-package exploits, and      #!!!!!!!!#
+#!!!!!#             cleaned up messaging.                             #!!!!!!!!#
+#!!!!!#    v1.3 - Added both automatic and forced character set       #!!!!!!!!#
+#!!!!!#             recognition.                                      #!!!!!!!!#
+#!!!!!#           Added Http-package character set misdetection, now  #!!!!!!!!#
+#!!!!!#             you can know when a flaw within http-package could#!!!!!!!!#
+#!!!!!#             render your results useless and realize it isn't  #!!!!!!!!#
+#!!!!!#             a fault of this script, but a flaw within the     #!!!!!!!!#
+#!!!!!#             package Http.                                     #!!!!!!!!#
+#!!!!!#           Added --swap parameter for hassle free encoding     #!!!!!!!!#
+#!!!!!#             conflict resolutions.                             #!!!!!!!!#
+#!!!!!#    v1.2 - Addded multiple url shortening sites via their      #!!!!!!!!#
+#!!!!!#             api query. can also be randomized or cycled.      #!!!!!!!!#
+#!!!!!#    v1.1 - Added post and regexp support for those learning    #!!!!!!!!#
+#!!!!!#             regexp for the very first time.                   #!!!!!!!!#
+#!!!!!#    v1.0 - first release, enjoy.. :)                           #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!# TODO:                                                         #!!!!!!!!#
+#!!!!!#   - Add support for regexp templates specific to each site.   #!!!!!!!!#
+#!!!!!#   - Support multiple proxies ( with ability to choose )       #!!!!!!!!#
+#!!!!!#   - Suggestions/Thanks/Bugs, e-mail at bottom of header.      #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!# LICENSE:                                                      #!!!!!!!!#
+#!!!!!#   This code comes with ABSOLUTELY NO WARRANTY.                #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!#   This program is free software; you can redistribute it      #!!!!!!!!#
+#!!!!!#   and/or modify it under the terms of the GNU General Public  #!!!!!!!!#
+#!!!!!#   License as published by the Free Software Foundation;       #!!!!!!!!#
+#!!!!!#   either version 2 of the License, or (at your option) any    #!!!!!!!!#
+#!!!!!#   later version.                                              #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!#   This program is distributed in the hope that it will be     #!!!!!!!!#
+#!!!!!#   useful, but WITHOUT ANY WARRANTY; without even the implied  #!!!!!!!!#
+#!!!!!#   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     #!!!!!!!!#
+#!!!!!#   PURPOSE.  See the GNU General Public License for more       #!!!!!!!!#
+#!!!!!#   details. (http://www.gnu.org/copyleft/library.txt)          #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!# Copyleft (C) 2009-2011, speechles                             #!!!!!!!!#
+#!!!!!# imspeechless@gmail.com                                        #!!!!!!!!#
+#!!!!!# October 27th, 2011                                            #!!!!!!!!#
+#!!!!!#                                                               #!!!!!!!!#
+#!!!!!# Credit: lee8oi for the help ... to PsWii60 for nothing.. :P   #!!!!!!!!#
+#!!!!!#################################################################!!!!!!!!#
+#!!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+################################################################################
