@@ -237,14 +237,14 @@ package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
 if {([lsearch [info commands] zlib] == -1) && ([catch {package require zlib} error] !=0)} {
   if {([catch {package require Trf} error] == 0) || ([lsearch [info commands] zip] != -1)} {
-    putlog "Webby: Found trf package. Fast lane activated!"
+    putlog "Durby: Found trf package. Fast lane activated!"
     set webbyTrf 1
   } else {
-    putlog "Webby: Cannot find zlib or trf package! Gzipped url queries will not be used. Enjoy the slow lane! :P"
+    putlog "Durby: Cannot find zlib or trf package! Gzipped url queries will not be used. Enjoy the slow lane! :P"
     set webbyNoGzip 1
   }
 } else {
-  putlog "Webby: Found zlib package. Fast lane activated!"
+  putlog "Durby: Found zlib package. Fast lane activated!"
 }
 set weburlwatch(titlegrab) 0
 set weburlwatch(pubmflags) "-|-"
@@ -252,7 +252,7 @@ set weburlwatch(delay) 1
 set weburlwatch(last) 111
 set weburlwatch(length) 5
 set weburlwatch(watch) 1
-setudef flag webby
+setudef flag durby
 bind pub - !webby webby
 bind pub - !durby webby
 bind pubm weburlwatch(pubmflags) {*://*} weburlwatch
@@ -263,10 +263,10 @@ if {![is_patched]} {
 proc weburlwatch {nick host user chan text} {
   # watch for web urls in channel
   variable weburlwatch
-  if {([channel get $chan webby]) && ([expr {[unixtime] - $weburlwatch(delay)}] > $weburlwatch(last))\
+  if {([channel get $chan durby]) && ([expr {[unixtime] - $weburlwatch(delay)}] > $weburlwatch(last))\
     && ($::durbyUrlWatch > 0)} {
     foreach word [split $text] {
-      if {($word == "!webby")} {
+      if {($word == "!webby") && $word == "!durby"} {
           return 0
       } else {
         if {[string length $word] >= $weburlwatch(length) && \
@@ -291,7 +291,7 @@ proc weburlwatch {nick host user chan text} {
   return 1
 }
 proc webby {nick uhost handle chan site} {
-  if {![channel get $chan webby]} { return }
+  if {![channel get $chan durby]} { return }
   if {[regsub -nocase -all -- {--header} $site "" site]} { set w1 0 }
   if {[regsub -nocase -all -- {--validate} $site "" site]} { set w1 0 ; set w2 0 ; set w3 0 ; set w10 0 }
   if {[regsub -nocase -all -- {--xheader} $site "" site]} { set w2 0 }
@@ -322,7 +322,7 @@ proc webby {nick uhost handle chan site} {
   }
   if {[string match "*://*" $site]} { set site [join [lrange [split $site "/"] 2 end] "/"] }
   if {[string equal "-" [string index [set site [string map {"  " " "} [string trim $site]]] 0]]} {
-    putserv "privmsg $chan :\002webby\002: you've used an improper flag which may exploit http-package!"
+    putserv "privmsg $chan :\002durby\002: you've used an improper flag which may exploit http-package!"
     return
   }
   foreach e [split $site "."] { lappend newsite [idna::domain_toascii $e] }
@@ -332,7 +332,7 @@ proc webby {nick uhost handle chan site} {
   if {[info exists w4]} {
     putserv "privmsg $chan :Deconstructing post query..."
     if {![regexp -- {\|} $fullquery] && ![regexp -- {\?} $fullquery]} {
-      putserv "privmsg $chan :\002webby\002: $fullquery does not appear to be a post query, using simple query..."
+      putserv "privmsg $chan :\002durby\002: $fullquery does not appear to be a post query, using simple query..."
       unset w4
     } else {
       if {[regexp -- {\|} $fullquery]} {
@@ -342,17 +342,17 @@ proc webby {nick uhost handle chan site} {
           set suburl "/[lindex [split $query "?"] 0]?"
           set query [lindex [split $query "?"] 1]
         } else { set suburl "" }
-        putserv "privmsg $chan :\002webby\002: detected \002url\002 $url \002query\002 $query"
+        putserv "privmsg $chan :\002durby\002: detected \002url\002 $url \002query\002 $query"
       } else {
         set suburl ""
         set url [lindex [split $fullquery "?"] 0]
         set query [lindex [split $fullquery "?"] 1]
-        putserv "privmsg $chan :\002webby\002: detected \002url\002 $url \002query\002 $query"
+        putserv "privmsg $chan :\002durby\002: detected \002url\002 $url \002query\002 $query"
       }
       set post [list]
       foreach {entry} [split $query "&"] {
         if {![regexp {\=} $entry]} {
-          putserv "privmsg $chan :\002webby\002: broken post structure ($entry). Is not post query, using simple query..."
+          putserv "privmsg $chan :\002durby\002: broken post structure ($entry). Is not post query, using simple query..."
           unset w4
           break
         } else {
@@ -386,15 +386,15 @@ proc webby {nick uhost handle chan site} {
   }
   if {![string match -nocase "::http::*" $error]} {
     set cleanerr [string totitle [string map {"\n" " | "} $error]]
-    putserv "privmsg $chan :\002webby\002: $cleanerr \( $fullquery \)"
+    putserv "privmsg $chan :\002durby\002: $cleanerr \( $fullquery \)"
      return 0
   }
   if {![string equal -nocase [::http::status $http] "ok"]} {
-    putserv "privmsg $chan :\002webby\002: [string totitle [::http::status $http]] \( $fullquery \)"
+    putserv "privmsg $chan :\002durby\002: [string totitle [::http::status $http]] \( $fullquery \)"
     return 0
   }
   upvar #0 $http state
-  if {![info exists state(meta)]} { putserv "privmsg $chan :\002webby\002: unsupported URL error \( $fullquery \)" ; return 0 }
+  if {![info exists state(meta)]} { putserv "privmsg $chan :\002durby\002: unsupported URL error \( $fullquery \)" ; return 0 }
   set redir [::http::ncode $http]
   # iterate through the meta array
   foreach {name value} $state(meta) {
@@ -427,7 +427,7 @@ proc webby {nick uhost handle chan site} {
           } else {
             incr poison
             if {$poison > 2} {
-              putserv "privmsg $chan :\002webby\002: redirect error (self to self)\($url\) - ($cookies) are no help..."
+              putserv "privmsg $chan :\002durby\002: redirect error (self to self)\($url\) - ($cookies) are no help..."
               return
             }
           }
@@ -446,17 +446,17 @@ proc webby {nick uhost handle chan site} {
           }
         }
         if {![string match -nocase "::http::*" $error]} {
-          putserv "privmsg $chan :\002webby\002: [string totitle $error] \( $value \)"
+          putserv "privmsg $chan :\002durby\002: [string totitle $error] \( $value \)"
           return 0
         }
         if {![string equal -nocase [::http::status $http] "ok"]} {
-          putserv "privmsg $chan :\002webby\002: [string totitle [::http::status $http]] \( $value \)"
+          putserv "privmsg $chan :\002durby\002: [string totitle [::http::status $http]] \( $value \)"
           return 0
         }
         set redir [::http::ncode $http]
         set url [string map {" " "%20"} $value]
         upvar #0 $http state
-        if {[incr r] > 10} { putserv "privmsg $chan :\002webby\002: redirect error (>10 too deep) \( $url \)" ; return }
+        if {[incr r] > 10} { putserv "privmsg $chan :\002durby\002: redirect error (>10 too deep) \( $url \)" ; return }
         # iterate through the meta array
         #if {![string length cookies]} {
           foreach {name value} $state(meta) {
@@ -518,21 +518,21 @@ proc webby {nick uhost handle chan site} {
       if {$::webbyFixDetection > 0} {
         switch $::webbyFixDetection {
           1 { if {![info exists w8]} {
-                if {$::webbyShowMisdetection > 0 } { set flaw "\002webby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict."} { set flaw "" }
+                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict."} { set flaw "" }
         	set html [webbyConflict $html $char3 $char2 2 [info exists w9]]
                 set char [string trim $char3 {;}]
               } else {
-                if {$::webbyShowMisdetection > 0 } { set flaw "\002webby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
+                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
 		  set html [webbyConflict $html $char3 $char2 1 [info exists w9]]
                 set char [string trim $char2 {;}]
               }
             }
           2 { if {![info exists w8]} {
-              if {$::webbyShowMisdetection > 0 } { set flaw "\002webby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
+              if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
               set html [webbyConflict $html $char3 $char2 1 [info exists w9]]
               set char [string trim $char2 {;}]
             } else {
-              if {$::webbyShowMisdetection > 0 } { set flaw "\002webby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict." } { set flaw "" }
+              if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict." } { set flaw "" }
                 set html [webbyConflict $html $char3 $char2 2 [info exists w9]]
               set char [string trim $char3 {;}]
             }
@@ -589,7 +589,7 @@ proc webby {nick uhost handle chan site} {
   ::http::cleanup $http
   regsub -all {(?:\n|\t|\v|\r|\x01)} $html " " html
     # DEBUG DEBUG                    
-    set junk [open "webby.txt" w]
+    set junk [open "durby.txt" w]
     puts $junk $html
     set ::delTemp $html
     close $junk
@@ -646,7 +646,7 @@ proc webby {nick uhost handle chan site} {
   if {$::webbyShowMisdetection > 0} {
     if {[string length $flaw]} { putserv "privmsg $chan :$flaw" }
     if {$::webbyShowMisdetection > 1} {
-      putserv "privmsg $chan :\002webby\002: Detected \002$char\002 \:\: Http-Package: $cset -> $char3 .. Meta-Charset: $mset -> $char2 \:\:"
+      putserv "privmsg $chan :\002durby\002: Detected \002$char\002 \:\: Http-Package: $cset -> $char3 .. Meta-Charset: $mset -> $char2 \:\:"
     }
   }
   if {($::webbyRegShow > 0) || ![info exists w5]} {
