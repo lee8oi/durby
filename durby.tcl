@@ -301,7 +301,6 @@ proc weburlwatch {nick host user chan text} {
           set weburlwatch(last) [unixtime]
           set weburlwatch(titlegrab) 1
           set urtitle [webby $nick $host $user $chan $word]
-          break
         }
       }
     }
@@ -575,6 +574,7 @@ proc webby {nick uhost handle chan site} {
         } else {
           if {[string equal "utf-8" $char3]} {
             if {![info exists w9]} { set html [encoding convertto $char3 $html] }
+            set html [encoding convertto "iso8859-1" [encoding convertfrom $char3 $html]]
           } else {
               set html [encoding convertto "utf-8" [encoding convertfrom $char3 $html]]
               #set html [encoding convertfrom $char3 $html]
@@ -583,9 +583,9 @@ proc webby {nick uhost handle chan site} {
         set flaw ""
       } else {
         # we have http package 2.7
-        if {![string equal -nocase "utf-8" [encoding system]]} {
-          set html [encoding convertto $char3 $html]
-        }
+        #if {![string equal -nocase "utf-8" [encoding system]]} {
+        #  set html [encoding convertto $char3 $html]
+        #}
       }
     }
   }
