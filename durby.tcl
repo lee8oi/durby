@@ -2,7 +2,7 @@
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
 #                                                                    + 0.2.1 + #
 #                                                                    +-------+ #
-# Durby                                                                        #
+# Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
 # This is a fork of 'webby' script. See original header below for more         #
 # information.                                                                 #
