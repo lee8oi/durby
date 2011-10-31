@@ -213,7 +213,7 @@ variable durbyUrlWatch  1
 # enabling this option will set webby to ignore urls that match
 # any pattern in the patterns list.
 #                           +-+
-variable durbyPatternIgnore  1
+variable durbyPatternIgnore  0
 #                           +-+
 
 # What patterns should be ignored?
