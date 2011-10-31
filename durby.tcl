@@ -31,7 +31,8 @@
 # Durby defaults to simply showing title and tiny url.                         #
 #                                                                              #
 # Title Collection - Enabled by default. Sets durby to collect titles and      #
-# display the results at once instead of posting each result individually      #
+# display the results at once instead of posting each result individually when #
+# urlwatch finds multiple links. Verbose mode disables this feature.           #
 #                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
