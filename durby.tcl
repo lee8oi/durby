@@ -630,7 +630,6 @@ proc webby {nick uhost handle chan site} {
     if {[string match -nocase "x-*" $name]} { lappend sx "\002$name\002=$value" ; continue}
     lappend s "\002$name\002=$value"
   }
-  putlog "doctype after: $doctype"
   append type " \)" ; set e ""
   ::http::cleanup $http
   regsub -all {(?:\n|\t|\v|\r|\x01)} $html " " html
@@ -712,15 +711,18 @@ proc webby {nick uhost handle chan site} {
         putserv "privmsg $chan :~ $title $tiny"
       }
     }
-    if {($::webbyheader > 0 && [llength $s]) || [info exists w1]} { putserv "privmsg $chan :[join [lsort -decreasing $s] "; "] " }
-    if {($::webbyXheader > 0 && [llength $sx]) || [info exists w2]} { putserv "privmsg $chan :[join [lsort -decreasing $sx] "; "] " }
+    set ssorted [join [lsort -decreasing $s] "; "]
+    if {($::webbyheader > 0 && [llength $s]) || [info exists w1]} { putserv "privmsg $chan :$ssorted" }
+    set sxsorted [join [lsort -decreasing $sx] "; "]
+    if {($::webbyXheader > 0 && [llength $sx]) || [info exists w2]} { putserv "privmsg $chan :$sxsorted" }
     if {($::webbydoc > 0 && [string length $hv]) || [info exists w3]} {
       foreach line [split [string trim $hv] \n] { putserv "privmsg $chan :$line" }
     }
     if {![info exists w3]} {
       if {[info exists vf] || ($::durbyVerbose > 0)} {
         foreach line [line_wrap [webbydescdecode $desc $char]] {
-          if {($line != "")} {
+          putlog "line is: $line linelength: [string length $line]"
+          if {([string length $line] > 1)} {
             putserv "privmsg $chan :~ $line"
           }
         }
