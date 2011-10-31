@@ -21,10 +21,10 @@
 # Durby adds these new features & changes to webby:                            #
 #                                                                              #
 # Urlwatch - for grabbing urls from channel messages and returning the         #
-# information automatically.                                                  #
+# information automatically.                                                   #
 #                                                                              #
 # Pattern Ignore - Allows users to configure the script to ignore urls that    #
-# match predefined ignore patterns.                                             #
+# match predefined ignore patterns.                                            #
 #                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
