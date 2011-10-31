@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.2 + #
+#                                                                    + 0.2.3 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -247,6 +247,14 @@ variable patterns {
 #                      +-+
 variable durbyVerbose   0
 #                      +-+
+
+# Collect titles in one message?
+# if this option is enabled urlwatch will collect titles in one message and
+# post them instead of posting individually.
+# --- [ 0 off / 1 on ]
+#                           +-+
+variable durbyCollectTitles  0
+#                           +-+
 #
 # END OF CONFIGURATION
 ################################################################################
@@ -282,6 +290,7 @@ if {![is_patched]} {
 proc weburlwatch {nick host user chan text} {
   # watch for web urls in channel
   variable weburlwatch
+  set result " "
   if {([channel get $chan durby]) && ([expr {[unixtime] - $weburlwatch(delay)}] > $weburlwatch(last))\
     && ($::durbyUrlWatch > 0)} {
     foreach word [split $text] {
@@ -300,10 +309,11 @@ proc weburlwatch {nick host user chan text} {
           }
           set weburlwatch(last) [unixtime]
           set weburlwatch(titlegrab) 1
-          set urtitle [webby $nick $host $user $chan $word]
+          lappend result "[webby $nick $host $user $chan $word] "
         }
       }
     }
+    if {($::durbyCollectTitles > 0)} {putserv "privmsg $chan :[join $result]"}
   }
   # change to return 0 if you want the pubm trigger logged additionally..
   return 1
@@ -330,6 +340,12 @@ proc webby {nick uhost handle chan site} {
     }
     set w5 0
     regsub -nocase -- {--regexp .*?--} $site "" site
+  }
+  foreach site [split $site] {
+    if {[string match "*://*" $site]} {
+      set site $site
+      break
+    }
   }
   #check ignore list
   if {$::durbyPatternIgnore > 0} {
@@ -675,7 +691,11 @@ proc webby {nick uhost handle chan site} {
     if {[info exists vf] || ($::durbyVerbose > 0)} {
       putserv "privmsg $chan :$title $tiny$type"
     } else {
-      putserv "privmsg $chan :$title $tiny"
+      if {($::durbyCollectTitles > 0)} {
+        set result "$title $tiny"
+      } else {
+        putserv "privmsg $chan :$title $tiny"
+      }
     }
     if {($::webbyheader > 0 && [llength $s]) || [info exists w1]} { putserv "privmsg $chan :[join [lsort -decreasing $s] "; "] " }
     if {($::webbyXheader > 0 && [llength $sx]) || [info exists w2]} { putserv "privmsg $chan :[join [lsort -decreasing $sx] "; "] " }
@@ -726,6 +746,7 @@ proc webby {nick uhost handle chan site} {
       }
     }
   }
+  if {($::durbyCollectTitles > 0)} {return $result}
 }
 
 proc webbyConflict {html in out type gz} {
