@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.1 + #
+#                                                                    + 0.2.2 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -26,11 +26,15 @@
 # Pattern Ignore - Allows users to configure the script to ignore urls that    #
 # match predefined ignore patterns.                                            #
 #                                                                              #
+# Verbose Mode - Can be enabled by default or used on demand with the          #
+# --verbose switch to append the urls type info and description to the results.#
+# Durby defaults to simply showing title and tiny url.                         #
+#                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
 #       [--post] [--override] [--nostrip] [--swap]                             #
-#       [--regexp regexp-here--]                                               #
+#       [--regexp regexp-here--]  [--verbose]                                  #
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
@@ -234,6 +238,16 @@ variable patterns {
   *.bmp
   #*porn.com*
 }
+
+# Use verbose mode by default?
+# if enabled durby will always show type information and description of url
+# along with the standard output. Otherwise use --verbose switch to request the
+# extra output.
+# --- [ 0 off / 1 on ]
+#                      +-+
+variable durbyVerbose   0
+#                      +-+
+#
 # END OF CONFIGURATION
 ################################################################################
 #!!!!!!!!!!!!!!!!!!!!!!!!!!EXPERTS ONLY BELOW !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
@@ -271,7 +285,7 @@ proc weburlwatch {nick host user chan text} {
   if {([channel get $chan durby]) && ([expr {[unixtime] - $weburlwatch(delay)}] > $weburlwatch(last))\
     && ($::durbyUrlWatch > 0)} {
     foreach word [split $text] {
-      if {($word == "!webby") && $word == "!durby"} {
+      if {($word == "!webby") || ($word == "!durby")} {
           return 0
       } else {
         if {[string length $word] >= $weburlwatch(length) && \
@@ -297,6 +311,7 @@ proc weburlwatch {nick host user chan text} {
 }
 proc webby {nick uhost handle chan site} {
   if {![channel get $chan durby]} { return }
+  if {[regsub -nocase -all -- {--verbose} $site "" site]} { set vf 0 }
   if {[regsub -nocase -all -- {--header} $site "" site]} { set w1 0 }
   if {[regsub -nocase -all -- {--validate} $site "" site]} { set w1 0 ; set w2 0 ; set w3 0 ; set w10 0 }
   if {[regsub -nocase -all -- {--xheader} $site "" site]} { set w2 0 }
@@ -657,15 +672,21 @@ proc webby {nick uhost handle chan site} {
   if {($::webbyRegShow > 0) || ![info exists w5]} {
     set title [webbydescdecode $title $char]
     set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
-    putserv "privmsg $chan :<> $title {$tiny}$type"
+    if {[info exists vf] || ($::durbyVerbose > 0)} {
+      putserv "privmsg $chan :$title $tiny$type"
+    } else {
+      putserv "privmsg $chan :$title $tiny"
+    }
     if {($::webbyheader > 0 && [llength $s]) || [info exists w1]} { putserv "privmsg $chan :[join [lsort -decreasing $s] "; "] " }
     if {($::webbyXheader > 0 && [llength $sx]) || [info exists w2]} { putserv "privmsg $chan :[join [lsort -decreasing $sx] "; "] " }
     if {($::webbydoc > 0 && [string length $hv]) || [info exists w3]} {
       foreach line [split [string trim $hv] \n] { putserv "privmsg $chan :$line" }
     }
     if {![info exists w3]} {
-      foreach line [line_wrap [webbydescdecode $desc $char]] {
-        putserv "privmsg $chan :$line"
+      if {[info exists vf] || ($::durbyVerbose > 0)} {
+        foreach line [line_wrap [webbydescdecode $desc $char]] {
+          putserv "privmsg $chan :$line"
+        }
       }
     }
   } else {
