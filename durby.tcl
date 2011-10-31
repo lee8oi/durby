@@ -245,7 +245,7 @@ variable patterns {
 # Use verbose mode by default?
 # if enabled durby will always show type information and description of url
 # along with the standard output. Otherwise use --verbose switch to request the
-# extra output.
+# extra output. Verbose mode disables title collection.
 # --- [ 0 off / 1 on ]
 #                      +-+
 variable durbyVerbose   0
