@@ -30,6 +30,9 @@
 # --verbose switch to append the urls type info and description to the results.#
 # Durby defaults to simply showing title and tiny url.                         #
 #                                                                              #
+# Title Collection - Enabled by default. Sets durby to collect titles and      #
+# display the results at once instead of posting each result individually      #
+#                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
@@ -253,7 +256,7 @@ variable durbyVerbose   0
 # post them instead of posting individually.
 # --- [ 0 off / 1 on ]
 #                           +-+
-variable durbyCollectTitles  0
+variable durbyCollectTitles  1
 #                           +-+
 #
 # END OF CONFIGURATION
@@ -279,6 +282,7 @@ set weburlwatch(delay) 1
 set weburlwatch(last) 111
 set weburlwatch(length) 5
 set weburlwatch(watch) 1
+variable urlwatchtoken 0
 setudef flag durby
 bind pub - !webby webby
 bind pub - !durby webby
@@ -290,7 +294,7 @@ if {![is_patched]} {
 proc weburlwatch {nick host user chan text} {
   # watch for web urls in channel
   variable weburlwatch
-  set result " "
+  set result ""
   if {([channel get $chan durby]) && ([expr {[unixtime] - $weburlwatch(delay)}] > $weburlwatch(last))\
     && ($::durbyUrlWatch > 0)} {
     foreach word [split $text] {
@@ -307,12 +311,14 @@ proc weburlwatch {nick host user chan text} {
               }
             }
           }
+          set ::urlwatchtoken 1
           set weburlwatch(last) [unixtime]
           set weburlwatch(titlegrab) 1
-          lappend result "[webby $nick $host $user $chan $word] "
+          lappend result "~ [webby $nick $host $user $chan $word] "
         }
       }
     }
+    set ::urlwatchtoken 0
     if {($::durbyCollectTitles > 0)} {putserv "privmsg $chan :[join $result]"}
   }
   # change to return 0 if you want the pubm trigger logged additionally..
@@ -688,13 +694,15 @@ proc webby {nick uhost handle chan site} {
   if {($::webbyRegShow > 0) || ![info exists w5]} {
     set title [webbydescdecode $title $char]
     set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
+    set result ""
     if {[info exists vf] || ($::durbyVerbose > 0)} {
-      putserv "privmsg $chan :$title $tiny$type"
+      putserv "privmsg $chan :~ $title $tiny$type"
+      set verbose 1
     } else {
-      if {($::durbyCollectTitles > 0)} {
+      if {($::durbyCollectTitles > 0) && ($::urlwatchtoken == 1)} {
         set result "$title $tiny"
       } else {
-        putserv "privmsg $chan :$title $tiny"
+        putserv "privmsg $chan :~ $title $tiny"
       }
     }
     if {($::webbyheader > 0 && [llength $s]) || [info exists w1]} { putserv "privmsg $chan :[join [lsort -decreasing $s] "; "] " }
@@ -705,7 +713,7 @@ proc webby {nick uhost handle chan site} {
     if {![info exists w3]} {
       if {[info exists vf] || ($::durbyVerbose > 0)} {
         foreach line [line_wrap [webbydescdecode $desc $char]] {
-          putserv "privmsg $chan :$line"
+          putserv "privmsg $chan :~ $line"
         }
       }
     }
@@ -746,7 +754,7 @@ proc webby {nick uhost handle chan site} {
       }
     }
   }
-  if {($::durbyCollectTitles > 0)} {return $result}
+  if {($::durbyCollectTitles > 0) && ($::urlwatchtoken == 1)} {return $result}
 }
 
 proc webbyConflict {html in out type gz} {
