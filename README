@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.3 + #
+#                                                                    + 0.2.4 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -23,7 +23,7 @@
 # Urlwatch - for grabbing urls from channel messages and returning the         #
 # information automatically.                                                   #
 #                                                                              #
-# Pattern Ignore - Allows users to configure the script to ignore urls that    #
+# Pattern Ignore - Allows you to configure the script to ignore urls that      #
 # match predefined ignore patterns.                                            #
 #                                                                              #
 # Verbose Mode - Can be enabled by default or used on demand with the          #
@@ -32,13 +32,17 @@
 #                                                                              #
 # Title Collection - Enabled by default. Sets durby to collect titles and      #
 # display the results at once instead of posting each result individually when #
-# urlwatch finds multiple links. Verbose mode disables this feature.           #
+# urlwatch finds multiple links. (Verbose mode disables this feature).         #
+#                                                                              #
+# Encoding Debugging - When having issues with characters not displaying       #
+# correctly you can use "!durby --encoding-debug <url>" to log extra output    #
+# which might help solve encoding bugs.                                        #
 #                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
 #       [--post] [--override] [--nostrip] [--swap]                             #
-#       [--regexp regexp-here--]  [--verbose]                                  #
+#       [--regexp regexp-here--]  [--verbose] [--encoding-debug]               #
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
