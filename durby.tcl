@@ -1002,7 +1002,7 @@ proc durby_encode {data swap char1 {char2 "none"}} {
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
 	# "charset mismatch."
-        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc ; set ::w8 0}
+        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc}
         if {($::webbyFixDetection == 2)} {
             #use meta
             set charset $char1
@@ -1099,7 +1099,7 @@ proc durby_encode_debug {swap char1 {char2 "none"}} {
     #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
-        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc ;}
+        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc}
         if {($::webbyFixDetection == 2)} {
             #use meta
             set charset $char1
