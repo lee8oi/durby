@@ -178,7 +178,6 @@ variable regexp_limit   3000
 #                      +----+
 #
 # how should we treat encodings?
-# 0 - do nothing, use eggdrops internal encoding whatever that may be.
 # 1 - use the encoding the website is telling us to use.
 #     This is the option everyone should use primarily.
 # 2 - Force a static encoding for everything. If you use option 2,
@@ -294,7 +293,7 @@ bind pub - !durby webby
 bind pubm weburlwatch(pubmflags) {*://*} weburlwatch
 proc is_patched {} { catch {queuesize a} err1; catch {queuesize \u0754} err2; expr {[string bytelength $err2]!=[string bytelength $err1]} }
 if {![is_patched]} {
-  putlog "This bot is not patched for utf-8. Normally we can work around this but if you continue to have problems with character display see: http://eggwiki.org/Utf-8"
+  putlog "This bot is not patched for utf-8. Normally we can work around this but if you have problems see: http://eggwiki.org/Utf-8"
 }
 proc weburlwatch {nick host user chan text} {
   # watch for web urls in channel
