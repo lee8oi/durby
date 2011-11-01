@@ -558,7 +558,7 @@ proc webby {nick uhost handle chan site} {
     }
   }
   set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
-  ################
+  ##############################################################################
   # DurbyEncode.
   if {[info exists w8]} {set cswap 1} else {set cswap 0}
   if {![string match -nocase "none given" $char2]} {
@@ -571,12 +571,16 @@ proc webby {nick uhost handle chan site} {
     set html [durby_encode $html $cswap $char3]
   }
   # DurbyEncode
-  ###############
+  ##############################################################################
   set s [list] ; set sx [list] ; set type "\( $nc" ; set metas [list]
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
   switch $::webbyDynEnc {
-    2 { set html [incithencode $html [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $::webbyEnc]] }
+    2 {
+      set enc [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $::webbyEnc]
+      if {[lsearch -exact [encoding names] $enc] != -1} {
+        set html [encoding convertto $enc $html]
+      }
   }
   set red ""; if {$r > 0} { set red "; $r redirects" }
   set doctype ""
@@ -725,40 +729,6 @@ proc webby {nick uhost handle chan site} {
     }
   }
   if {($::durbyCollectTitles > 0) && ($::urlwatchtoken == 1)} {return $result}
-}
-
-proc webbyConflict {html in out type gz} {
-  switch -- $type {
-    "1" {
-      if {[is_patched]} {
-        set html [encoding convertfrom $out $html]
-      } else {
-        set html [encoding convertto utf-8 [encoding convertfrom $out $html]]
-      }
-    }
-    "2" {  set html [encoding convertfrom $out $html]
-      #if {![string equal -nocase "utf-8" [encoding system]]} { set html [encoding convertto utf-8 $html] }
-      if {[is_patched]} {
-        set html [encoding convertfrom $out $html]
-      } else {
-        set html [encoding convertto utf-8 [encoding convertfrom $out $html]]
-      }
-    }
-  }
-  return $html
-}
-proc incithencode {text enc} {
-  if {[lsearch -exact [encoding names] $enc] != -1} {
-    set text [encoding convertto $enc $text]
-  }
-  return $text
-}
-
-proc incithdecode {text enc {en2 "utf-8"}} {
-  if {[lsearch -exact [encoding names] $enc] != -1} {
-    set text [encoding convertto $en2 [encoding convertfrom $enc $text]]
-  }
-  return $text
 }
 
 proc unhtml {text} {
