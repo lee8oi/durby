@@ -1139,7 +1139,6 @@ proc durby_encode_debug {char1 {char2 "none"}} {
         }
         putlog "Charset conflict $char1 vs $char2. Using $charset."
         if {![is_patched]} { putlog "Bot is not patched"}
-        return
     } else {
 	putlog "charset match."
 	putlog "charset is: $char2"
