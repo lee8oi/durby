@@ -328,7 +328,6 @@ proc weburlwatch {nick host user chan text} {
   # change to return 0 if you want the pubm trigger logged additionally..
   return 1
 }
-variable w8 0
 variable curchan ""
 proc webby {nick uhost handle chan site} {
   set ::curchan $chan
@@ -342,7 +341,7 @@ proc webby {nick uhost handle chan site} {
   if {[regsub -nocase -all -- {--post} $site "" site]} { set w4 0 }
   if {[regsub -nocase -all -- {--override} $site "" site]} { set w6 0 }
   if {[regsub -nocase -all -- {--nostrip} $site "" site]} { set w7 0 }
-  if {[regsub -nocase -all -- {--swap} $site "" site]} { set ::w8 1 }
+  if {[regsub -nocase -all -- {--swap} $site "" site]} { set w8 0 }
   if {[regsub -nocase -all -- {--gz} $site "" site]} { set w9 0 }
   if {[regexp -nocase -- {--regexp (.*?)--} $site - reggy]} {
     if {[catch {set varnum [lindex [regexp -about -- $reggy] 0]} error]} {
@@ -561,14 +560,15 @@ proc webby {nick uhost handle chan site} {
   set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
   ################
   # DurbyEncode.
+  if {[info exists w8]} {set cswap 1} else {set cswap 0}
   if {![string match -nocase "none given" $char2]} {
     # "char2 is valid. running durbyencode with $char2 and $char3 charsets"
-      if {[info exists ed]} {durby_encode_debug $char2 $char3}
-      set html [durby_encode $html $char2 $char3]
+      if {[info exists ed]} {durby_encode_debug $cswap $char2 $char3}
+      set html [durby_encode $html $cswap $char2 $char3]
   } else {
     # "char2 is not given. running durbyencode with just $char3"
-    if {[info exists ed]} {durby_encode_debug $char3}
-    set html [durby_encode $html $char3]
+    if {[info exists ed]} {durby_encode_debug $cswap $char3}
+    set html [durby_encode $html $cswap $char3]
   }
   # DurbyEncode
   ###############
@@ -1026,13 +1026,13 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 # DurbyEncode - Encoding system with debugging.
-proc durby_encode {data char1 {char2 "none"}} {
+proc durby_encode {data swap char1 {char2 "none"}} {
     set system [encoding system]
     #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
 	# "charset mismatch."
-        if {($::w8 > 0)} {set swap $char2 ; set char2 $char1 ; set char1 $swap}
+        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc ; set ::w8 0}
         if {($::webbyFixDetection == 2)} {
             #use meta
             set charset $char1
@@ -1124,12 +1124,12 @@ proc durby_encode {data char1 {char2 "none"}} {
     }
     return $data
 }
-proc durby_encode_debug {char1 {char2 "none"}} {
+proc durby_encode_debug {swap char1 {char2 "none"}} {
     set system [encoding system]
     #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
-        if {($::w8 > 0)} {set swap $char2 ; set char2 $char1 ; set char1 $swap}
+        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc ;}
         if {($::webbyFixDetection == 2)} {
             #use meta
             set charset $char1
