@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.3 + #
+#                                                                    + 0.2.4 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -23,7 +23,7 @@
 # Urlwatch - for grabbing urls from channel messages and returning the         #
 # information automatically.                                                   #
 #                                                                              #
-# Pattern Ignore - Allows users to configure the script to ignore urls that    #
+# Pattern Ignore - Allows you to configure the script to ignore urls that      #
 # match predefined ignore patterns.                                            #
 #                                                                              #
 # Verbose Mode - Can be enabled by default or used on demand with the          #
@@ -32,13 +32,17 @@
 #                                                                              #
 # Title Collection - Enabled by default. Sets durby to collect titles and      #
 # display the results at once instead of posting each result individually when #
-# urlwatch finds multiple links. Verbose mode disables this feature.           #
+# urlwatch finds multiple links. (Verbose mode disables this feature).         #
+#                                                                              #
+# Encoding Debugging - When having issues with characters not displaying       #
+# correctly you can use "!durby --encoding-debug <url>" to log extra output    #
+# which might help solve encoding bugs.                                        #
 #                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
 #       [--post] [--override] [--nostrip] [--swap]                             #
-#       [--regexp regexp-here--]  [--verbose]                                  #
+#       [--regexp regexp-here--]  [--verbose] [--encoding-debug]               #
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
@@ -327,6 +331,7 @@ proc weburlwatch {nick host user chan text} {
 }
 proc webby {nick uhost handle chan site} {
   if {![channel get $chan durby]} { return }
+  if {[regsub -nocase -all -- {--encoding-debug} $site "" site]} { set ed 0 }
   if {[regsub -nocase -all -- {--verbose} $site "" site]} { set vf 0 }
   if {[regsub -nocase -all -- {--header} $site "" site]} { set w1 0 }
   if {[regsub -nocase -all -- {--validate} $site "" site]} { set w1 0 ; set w2 0 ; set w3 0 ; set w10 0 }
@@ -552,75 +557,19 @@ proc webby {nick uhost handle chan site} {
     }
   }
   set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
-  putlog "running encoding debug"
+  ################
+  # DurbyEncode.
   if {![string match -nocase "none given" $char2]} {
-    putlog "char2 is valid. running debug with $char2 and $char3 charsets"
-      durbyencodedebug $char2 $char3
+    # "char2 is valid. running durbyencode with $char2 and $char3 charsets"
+      if {[info exists ed]} {durby_encode_debug $char2 $char3}
+      set html [durby_encode $html $char2 $char3]
   } else {
-    putlog "char2 is not given. running debug with just $char3"
-    durbyencodedebug $char3
+    # "char2 is not given. running durbyencode with just $char3"
+    if {[info exists ed]} {durby_encode_debug $char3}
+    set html [durby_encode $html $char3]
   }
-  if {($char2 != $char3)} {}
-  if {[string equal $char $state(charset)] && [string equal $char $char2] && ![string equal -nocase "none given" $char]} {
-    set char [string trim $state(charset) {;}]
-    set flaw ""
-  } else {
-    if {![string equal -nocase $char2 $char3] && ![string equal -nocase "none given" $char2] && $::webbyFixDetection > 0} {
-      if {$::webbyFixDetection > 0} {
-        switch $::webbyFixDetection {
-          1 { if {![info exists w8]} {
-                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict."} { set flaw "" }
-        	set html [webbyConflict $html $char3 $char2 2 [info exists w9]]
-                set char [string trim $char3 {;}]
-              } else {
-                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
-		  set html [webbyConflict $html $char3 $char2 1 [info exists w9]]
-                set char [string trim $char2 {;}]
-              }
-            }
-          2 { if {![info exists w8]} {
-              if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
-              set html [webbyConflict $html $char3 $char2 1 [info exists w9]]
-              set char [string trim $char2 {;}]
-            } else {
-              if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict." } { set flaw "" }
-                set html [webbyConflict $html $char3 $char2 2 [info exists w9]]
-              set char [string trim $char3 {;}]
-            }
-          }
-        }
-      } else {
-        set flaw ""
-        set char [string trim $char3 {;}]
-      }
-    } else {
-      set char [string trim $char3 {;}]
-      if {[catch {package present http 2.7}]} {
-        # assume http package 2.5.3
-        if {[is_patched]} {
-          if {![string equal -nocase "utf-8" $char3]} { 
-            set html [encoding convertfrom $char3 $html]
-          } else {
-            #set html [encoding convertto $char3 $html]
-          }
-        } else {
-          if {[string equal "utf-8" $char3]} {
-            if {![info exists w9]} { set html [encoding convertto $char3 $html] }
-            set html [encoding convertto "iso8859-1" [encoding convertfrom $char3 $html]]
-          } else {
-              set html [encoding convertto "utf-8" [encoding convertfrom $char3 $html]]
-              #set html [encoding convertfrom $char3 $html]
-          }
-        }
-        set flaw ""
-      } else {
-        # we have http package 2.7
-        #if {![string equal -nocase "utf-8" [encoding system]]} {
-        #  set html [encoding convertto $char3 $html]
-        #}
-      }
-    }
-  }
+  # DurbyEncode
+  ###############
   set s [list] ; set sx [list] ; set type "\( $nc" ; set metas [list]
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
@@ -1072,46 +1021,107 @@ proc idna::punycode_encode_digit {d} {
 }
 
 ##########################################################################
-proc durbyencodedebug {char1 {char2 0}} {
+
+##########################################################################
+# DurbyEncode - Encoding system with debugging.
+proc durby_encode {data char1 {char2 "none"}} {
     set system [encoding system]
-    if {($char2 == 0)} {set char2 $char1} ;#create a match to skip conflict handling.
+    #[string trim $char2 {;}]
+    if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
+    if {($char1 != $char2)} {
+	# "charset mismatch."
+        set data [encoding convertfrom $char1 $data]
+        if {![is_patched]} { set data [encoding convertto utf-8 $data] }
+        return $data
+    }
+    switch -glob [package provide http] {
+	"2.5.*" {
+	    # "http 2.5.x detected"
+	    if {[is_patched]} {
+		# "bot is patched"
+		if {($system == "utf-8")} {
+		    # "system is utf-8"
+                    if {![string match -nocase "utf-8" $char2]} {
+                      # "$char2 != utf-8"
+                      set data [encoding convertto utf-8 $data]
+                    } else {
+                      # "$char2 == utf-8"
+                    }
+		} else {
+		    # "system is not utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      # "char2 == utf-8"
+                      set data [encoding convertto $char2 $data]
+                    } else {
+                      # "char2 != utf-8"
+                      set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
+                    }
+		}
+	    } else {
+		# "bot is not patched"
+		if {($system == "utf-8")} {
+		    # "system is utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      # "char2 == utf-8"
+                      set data [encoding convertto $char2 $data]
+                    } else {
+                      # "char2 != utf-8"
+                      set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
+                    }
+		} else {
+		    # "system is not utf-8"
+		}
+	    }
+	}
+	"2.7.*" {
+	    # "http 2.7.x detected"
+	    if {[is_patched]} {
+		# "bot is patched"
+		if {($system == "utf-8")} {
+		    # "system is utf-8"
+                    if {![string match -nocase "utf-8" $char2]} {
+                      # "$char2 != utf-8"
+                    } else {
+                      # "$char2 == utf-8"
+                    }
+		} else {
+		    # "system is not utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      # "char2 == utf-8"
+                    } else {
+                      # "char2 != utf-8"
+                    }
+		}
+	    } else {
+		# "bot is not patched"
+		if {($system == "utf-8")} {
+		    # "system is utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      # "char2 == utf-8"
+                      set data [encoding convertto $char2 $data]
+                    } else {
+                      # "char2 != utf-8"
+                      set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
+                    }
+		} else {
+		    # "system is not utf-8"
+		}
+	    }
+	}
+    }
+    return $data
+}
+proc durby_encode_debug {char1 {char2 "none"}} {
+    set system [encoding system]
+    #[string trim $char2 {;}]
+    if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2)} {
 	putlog "charset mismatch."
-	switch -glob $char1 {
-	    "iso8859*" {
-		putlog "char1 is iso8859*"
-	    }
-	    "utf-8" {
-		putlog "char1 is utf-8"
-	    }
-	    default {
-		putlog "char1 is: $char1"
-	    }
-	}
-	switch -glob $char2 {
-	    "iso8859*" {
-		putlog "char2 is iso8859*"
-	    }
-	    "utf-8" {
-		putlog "char2 is utf-8"
-	    }
-	    default {
-		putlog "char2 is: $char2"
-	    }
-	}
+        putlog "char1 is: $char1 char2 is: $char2"
+        if {![is_patched]} { putlog "Bot is not patched"}
     } else {
 	putlog "charset match."
-	switch -glob $char2 {
-	    "iso8859*" {
-		putlog "charset is iso8859*"
-	    }
-	    "utf-8" {
-		putlog "charset is utf-8"
-	    }
-	    default {
-		putlog "charset is: $char2"
-	    }
-	}
+	putlog "charset is: $char2"
     }
     switch -glob [package provide http] {
 	"2.5.*" {
@@ -1120,13 +1130,28 @@ proc durbyencodedebug {char1 {char2 0}} {
 		putlog "bot is patched"
 		if {($system == "utf-8")} {
 		    putlog "system is utf-8"
+                    if {![string match -nocase "utf-8" $char2]} {
+                      putlog "$char2 != utf-8"
+                    } else {
+                      putlog "$char2 == utf-8"
+                    }
 		} else {
 		    putlog "system is not utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      putlog "char2 == utf-8"
+                    } else {
+                      putlog "char2 != utf-8"
+                    }
 		}
 	    } else {
 		putlog "bot is not patched"
 		if {($system == "utf-8")} {
 		    putlog "system is utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      putlog "char2 == utf-8"
+                    } else {
+                      putlog "char2 != utf-8"
+                    }
 		} else {
 		    putlog "system is not utf-8"
 		}
@@ -1138,18 +1163,39 @@ proc durbyencodedebug {char1 {char2 0}} {
 		putlog "bot is patched"
 		if {($system == "utf-8")} {
 		    putlog "system is utf-8"
+                    if {![string match -nocase "utf-8" $char2]} {
+                      putlog "$char2 != utf-8"
+                    } else {
+                      putlog "$char2 == utf-8"
+                    }
 		} else {
 		    putlog "system is not utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      putlog "char2 == utf-8"
+                    } else {
+                      putlog "char2 != utf-8"
+                    }
 		}
 	    } else {
 		putlog "bot is not patched"
 		if {($system == "utf-8")} {
 		    putlog "system is utf-8"
+                    if {[string match -nocase "utf-8" $char2]} {
+                      putlog "char2 == utf-8"
+                    } else {
+                      putlog "char2 != utf-8"
+                    }
 		} else {
 		    putlog "system is not utf-8"
 		}
 	    }
 	}
+        default {
+          putlog "Either really old http package, or this is the future and theres\
+          a new package I haven't been setup to use."
+        }
     }
 }
+# DurbyEncode - Encoding system with debugging.
+##########################################################################
 putlog "Durby v0.2 has been loaded."
