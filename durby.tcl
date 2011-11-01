@@ -329,7 +329,10 @@ proc weburlwatch {nick host user chan text} {
   # change to return 0 if you want the pubm trigger logged additionally..
   return 1
 }
+variable w8 0
+variable curchan ""
 proc webby {nick uhost handle chan site} {
+  set ::curchan $chan
   if {![channel get $chan durby]} { return }
   if {[regsub -nocase -all -- {--encoding-debug} $site "" site]} { set ed 0 }
   if {[regsub -nocase -all -- {--verbose} $site "" site]} { set vf 0 }
@@ -340,7 +343,7 @@ proc webby {nick uhost handle chan site} {
   if {[regsub -nocase -all -- {--post} $site "" site]} { set w4 0 }
   if {[regsub -nocase -all -- {--override} $site "" site]} { set w6 0 }
   if {[regsub -nocase -all -- {--nostrip} $site "" site]} { set w7 0 }
-  if {[regsub -nocase -all -- {--swap} $site "" site]} { set w8 0 }
+  if {[regsub -nocase -all -- {--swap} $site "" site]} { set ::w8 1 }
   if {[regsub -nocase -all -- {--gz} $site "" site]} { set w9 0 }
   if {[regexp -nocase -- {--regexp (.*?)--} $site - reggy]} {
     if {[catch {set varnum [lindex [regexp -about -- $reggy] 0]} error]} {
@@ -1028,9 +1031,20 @@ proc durby_encode {data char1 {char2 "none"}} {
     set system [encoding system]
     #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
-    if {($char1 != $char2)} {
+    if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
 	# "charset mismatch."
-        set data [encoding convertfrom $char1 $data]
+        if {($::w8 > 0)} {set swap $char2 ; set char2 $char1 ; set char1 $swap}
+        if {($::webbyFixDetection == 2)} {
+            #use meta
+            set charset $char1
+        } else {
+            #use http
+            set charset $char2
+        }
+        if {$::webbyShowMisdetection > 0 } {
+          putserv "privmsg $::curchan :\002webby\002: Encoding Conflict: $char1 vs $char2. Correcting to $charset."
+        }
+        set data [encoding convertfrom $charset $data]
         if {![is_patched]} { set data [encoding convertto utf-8 $data] }
         return $data
     }
@@ -1115,10 +1129,18 @@ proc durby_encode_debug {char1 {char2 "none"}} {
     set system [encoding system]
     #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
-    if {($char1 != $char2)} {
-	putlog "charset mismatch."
-        putlog "char1 is: $char1 char2 is: $char2"
+    if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
+        if {($::w8 > 0)} {set swap $char2 ; set char2 $char1 ; set char1 $swap}
+        if {($::webbyFixDetection == 2)} {
+            #use meta
+            set charset $char1
+        } else {
+            #use http
+            set charset $char2
+        }
+        putlog "Charset conflict $char1 vs $char2. Using $charset."
         if {![is_patched]} { putlog "Bot is not patched"}
+        return
     } else {
 	putlog "charset match."
 	putlog "charset is: $char2"
@@ -1138,9 +1160,9 @@ proc durby_encode_debug {char1 {char2 "none"}} {
 		} else {
 		    putlog "system is not utf-8"
                     if {[string match -nocase "utf-8" $char2]} {
-                      putlog "char2 == utf-8"
+                      putlog "$char2 == utf-8"
                     } else {
-                      putlog "char2 != utf-8"
+                      putlog "$char2 != utf-8"
                     }
 		}
 	    } else {
@@ -1148,9 +1170,9 @@ proc durby_encode_debug {char1 {char2 "none"}} {
 		if {($system == "utf-8")} {
 		    putlog "system is utf-8"
                     if {[string match -nocase "utf-8" $char2]} {
-                      putlog "char2 == utf-8"
+                      putlog "$char2 == utf-8"
                     } else {
-                      putlog "char2 != utf-8"
+                      putlog "$char2 != utf-8"
                     }
 		} else {
 		    putlog "system is not utf-8"
@@ -1171,9 +1193,9 @@ proc durby_encode_debug {char1 {char2 "none"}} {
 		} else {
 		    putlog "system is not utf-8"
                     if {[string match -nocase "utf-8" $char2]} {
-                      putlog "char2 == utf-8"
+                      putlog "$char2 == utf-8"
                     } else {
-                      putlog "char2 != utf-8"
+                      putlog "$char2 != utf-8"
                     }
 		}
 	    } else {
@@ -1181,9 +1203,9 @@ proc durby_encode_debug {char1 {char2 "none"}} {
 		if {($system == "utf-8")} {
 		    putlog "system is utf-8"
                     if {[string match -nocase "utf-8" $char2]} {
-                      putlog "char2 == utf-8"
+                      putlog "$char2 == utf-8"
                     } else {
-                      putlog "char2 != utf-8"
+                      putlog "$char2 != utf-8"
                     }
 		} else {
 		    putlog "system is not utf-8"
