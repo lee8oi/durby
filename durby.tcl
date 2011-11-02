@@ -506,7 +506,6 @@ proc webby {nick uhost handle chan site} {
         upvar #0 $http state
         if {[incr r] > 10} { putserv "privmsg $chan :\002durby\002: redirect error (>10 too deep) \( $url \)" ; return }
         # iterate through the meta array
-        #if {![string length cookies]} {
           foreach {name value} $state(meta) {
             # do we have cookies?                                                                                                                                                                             
             if {[string equal -nocase $name "Set-Cookie"]} {
@@ -519,7 +518,6 @@ proc webby {nick uhost handle chan site} {
           } else {
             set cookies ""
           }
-        #}
       }
     } 
   }
@@ -998,7 +996,6 @@ proc idna::punycode_encode_digit {d} {
 # DurbyEncode - Encoding system with debugging.
 proc durby_encode {data swap char1 {char2 "none"}} {
     set system [encoding system]
-    #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
 	# "charset mismatch."
@@ -1096,7 +1093,6 @@ proc durby_encode {data swap char1 {char2 "none"}} {
 }
 proc durby_encode_debug {swap char1 {char2 "none"}} {
     set system [encoding system]
-    #[string trim $char2 {;}]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
         if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc}
