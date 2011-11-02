@@ -482,15 +482,15 @@ proc webby {nick uhost handle chan site} {
         }
         if {[info exists w10]} {
           if {[string length $cookies]} {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -validate 1 -timeout [expr 1000 * 10]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -validate 1 -timeout [expr {1000 * 10}]]} error
           } else {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -validate 1 -timeout [expr 1000 * 10]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -validate 1 -timeout [expr {1000 * 10}]]} error
           }
         } else {
           if {[string length $cookies]} {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -timeout [expr 1000 * 10]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -timeout [expr {1000 * 10}]]} error
           } else {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -timeout [expr 1000 * 10]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -timeout [expr {1000 * 10}]]} error
           }
         }
         if {![string match -nocase "::http::*" $error]} {
@@ -1059,7 +1059,7 @@ proc durby_encode {data dbg swap char1 {char2 "none"}} {
                       set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
                     }
 		} else {
-		    if {($dbg == 1)} {putlog "system is not utf-8""}
+		    if {($dbg == 1)} {putlog "system is not utf-8"}
 		}
 	    }
 	}
