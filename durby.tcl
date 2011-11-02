@@ -579,6 +579,7 @@ proc webby {nick uhost handle chan site} {
       if {[lsearch -exact [encoding names] $enc] != -1} {
         set html [encoding convertto $enc $html]
       }
+    }
   }
   set red ""; if {$r > 0} { set red "; $r redirects" }
   set doctype ""
