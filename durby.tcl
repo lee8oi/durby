@@ -556,20 +556,24 @@ proc webby {nick uhost handle chan site} {
     }
   }
   set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
+  
   ##############################################################################
   # DurbyEncode.
+  ###
+  if {([info exists ed])} {set dbg 1} else {set dbg 0}
   if {[info exists w8]} {set cswap 1} else {set cswap 0}
   if {![string match -nocase "none given" $char2]} {
-    # "char2 is valid. running durbyencode with $char2 and $char3 charsets"
-      if {[info exists ed]} {durby_encode_debug $cswap $char2 $char3}
-      set html [durby_encode $html $cswap $char2 $char3]
+      if {($dbg == 1)} {putlog "char2 is valid. running durbyencode with $char2 and $char3 charsets"}
+      set html [durby_encode $html $dbg $cswap $char2 $char3]
   } else {
-    # "char2 is not given. running durbyencode with just $char3"
-    if {[info exists ed]} {durby_encode_debug $cswap $char3}
-    set html [durby_encode $html $cswap $char3]
+    # 
+    if {($dbg == 1)} {putlog "char2 is not given. running durbyencode with $char3"}
+    set html [durby_encode $html $dbg $cswap $char3]
   }
+  ###
   # DurbyEncode
   ##############################################################################
+  
   set s [list] ; set sx [list] ; set type "\( $nc" ; set metas [list]
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
@@ -992,197 +996,106 @@ proc idna::punycode_encode_digit {d} {
 }
 
 ##########################################################################
-
-##########################################################################
 # DurbyEncode - Encoding system with debugging.
-proc durby_encode {data swap char1 {char2 "none"}} {
+###
+proc durby_encode {data dbg swap char1 {char2 "none"}} {
     set system [encoding system]
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
-	# "charset mismatch."
+        if {($dbg == 1)} {putlog "conflicting charsets found: $char1 & $char2."}
         if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc}
         if {($::webbyFixDetection == 2)} {
-            #use meta
+            if {($dbg == 1)} {putlog "using meta charset $char1"}
             set charset $char1
         } else {
-            #use http
+            if {($dbg == 1)} {putlog "using http charset $char2"}
             set charset $char2
         }
         if {$::webbyShowMisdetection > 0 } {
           putserv "privmsg $::curchan :\002webby\002: Encoding Conflict: $char1 vs $char2. Correcting to $charset."
         }
         set data [encoding convertfrom $charset $data]
-        if {![is_patched]} { set data [encoding convertto utf-8 $data] }
+        if {![is_patched]} { set data [encoding convertto utf-8 $data] ; if {($dbg == 1)} {putlog "performing extra encoding for unpatched bot."}}
         return $data
     }
     switch -glob [package provide http] {
 	"2.5.*" {
-	    # "http 2.5.x detected"
+	    if {($dbg == 1)} {putlog "http 2.5.x detected"}
 	    if {[is_patched]} {
-		# "bot is patched"
+		if {($dbg == 1)} {putlog "bot is patched."}
 		if {($system == "utf-8")} {
-		    # "system is utf-8"
+		    if {($dbg == 1)} {putlog "system is utf-8"}
                     if {![string match -nocase "utf-8" $char2]} {
-                      # "$char2 != utf-8"
+                      if {($dbg == 1)} {putlog "$char2 != utf-8"}
                       set data [encoding convertto utf-8 $data]
                     } else {
-                      # "$char2 == utf-8"
+                      if {($dbg == 1)} {putlog "$char2 == utf-8"}
                     }
 		} else {
-		    # "system is not utf-8"
+		    if {($dbg == 1)} {putlog "system is not utf-8"}
                     if {[string match -nocase "utf-8" $char2]} {
-                      # "char2 == utf-8"
+                      if {($dbg == 1)} {putlog "$char2 == utf-8"}
                       set data [encoding convertto $char2 $data]
                     } else {
-                      # "char2 != utf-8"
+                      if {($dbg == 1)} {putlog "$char2 != utf-8"}
                       set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
                     }
 		}
 	    } else {
-		# "bot is not patched"
+		if {($dbg == 1)} {putlog "bot is not patched"}
 		if {($system == "utf-8")} {
-		    # "system is utf-8"
+		    if {($dbg == 1)} {putlog "system is utf-8"}
                     if {[string match -nocase "utf-8" $char2]} {
-                      # "char2 == utf-8"
+                      if {($dbg == 1)} {putlog "char2 == utf-8"}
                       set data [encoding convertto $char2 $data]
                     } else {
-                      # "char2 != utf-8"
+                      if {($dbg == 1)} {putlog "char2 != utf-8"}
                       set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
                     }
 		} else {
-		    # "system is not utf-8"
+		    if {($dbg == 1)} {putlog "system is not utf-8""}
 		}
 	    }
 	}
 	"2.7.*" {
-	    # "http 2.7.x detected"
+	    if {($dbg == 1)} {putlog "http 2.7.x detected"}
 	    if {[is_patched]} {
-		# "bot is patched"
+		if {($dbg == 1)} {putlog "bot is patched"}
 		if {($system == "utf-8")} {
-		    # "system is utf-8"
+		    if {($dbg == 1)} {putlog "system is utf-8"}
                     if {![string match -nocase "utf-8" $char2]} {
-                      # "$char2 != utf-8"
+                      if {($dbg == 1)} {putlog "$char2 != utf-8"}
                     } else {
-                      # "$char2 == utf-8"
+                      if {($dbg == 1)} {putlog "$char2 == utf-8"}
                     }
 		} else {
-		    # "system is not utf-8"
+		    if {($dbg == 1)} {putlog "system is not utf-8"}
                     if {[string match -nocase "utf-8" $char2]} {
-                      # "char2 == utf-8"
+                      if {($dbg == 1)} {putlog "char2 == utf-8"}
                     } else {
-                      # "char2 != utf-8"
+                      if {($dbg == 1)} {putlog "char2 != utf-8"}
                     }
 		}
 	    } else {
-		# "bot is not patched"
+		if {($dbg == 1)} {putlog "bot is not patched"}
 		if {($system == "utf-8")} {
-		    # "system is utf-8"
+		    if {($dbg == 1)} {putlog "system is utf-8"}
                     if {[string match -nocase "utf-8" $char2]} {
-                      # "char2 == utf-8"
+                      if {($dbg == 1)} {putlog "char2 == utf-8"}
                       set data [encoding convertto $char2 $data]
                     } else {
-                      # "char2 != utf-8"
+                      if {($dbg == 1)} {putlog "char2 != utf-8"}
                       set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
                     }
 		} else {
-		    # "system is not utf-8"
+		    if {($dbg == 1)} {putlog "system is not utf-8"}
 		}
 	    }
 	}
     }
     return $data
 }
-proc durby_encode_debug {swap char1 {char2 "none"}} {
-    set system [encoding system]
-    if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
-    if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
-        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc}
-        if {($::webbyFixDetection == 2)} {
-            #use meta
-            set charset $char1
-        } else {
-            #use http
-            set charset $char2
-        }
-        putlog "Charset conflict $char1 vs $char2. Using $charset."
-        if {![is_patched]} { putlog "Bot is not patched"}
-    } else {
-	putlog "charset match."
-	putlog "charset is: $char2"
-    }
-    switch -glob [package provide http] {
-	"2.5.*" {
-	    putlog "http 2.5.x detected"
-	    if {[is_patched]} {
-		putlog "bot is patched"
-		if {($system == "utf-8")} {
-		    putlog "system is utf-8"
-                    if {![string match -nocase "utf-8" $char2]} {
-                      putlog "$char2 != utf-8"
-                    } else {
-                      putlog "$char2 == utf-8"
-                    }
-		} else {
-		    putlog "system is not utf-8"
-                    if {[string match -nocase "utf-8" $char2]} {
-                      putlog "$char2 == utf-8"
-                    } else {
-                      putlog "$char2 != utf-8"
-                    }
-		}
-	    } else {
-		putlog "bot is not patched"
-		if {($system == "utf-8")} {
-		    putlog "system is utf-8"
-                    if {[string match -nocase "utf-8" $char2]} {
-                      putlog "$char2 == utf-8"
-                    } else {
-                      putlog "$char2 != utf-8"
-                    }
-		} else {
-		    putlog "system is not utf-8"
-		}
-	    }
-	}
-	"2.7.*" {
-	    putlog "http 2.7.x detected"
-	    if {[is_patched]} {
-		putlog "bot is patched"
-		if {($system == "utf-8")} {
-		    putlog "system is utf-8"
-                    if {![string match -nocase "utf-8" $char2]} {
-                      putlog "$char2 != utf-8"
-                    } else {
-                      putlog "$char2 == utf-8"
-                    }
-		} else {
-		    putlog "system is not utf-8"
-                    if {[string match -nocase "utf-8" $char2]} {
-                      putlog "$char2 == utf-8"
-                    } else {
-                      putlog "$char2 != utf-8"
-                    }
-		}
-	    } else {
-		putlog "bot is not patched"
-		if {($system == "utf-8")} {
-		    putlog "system is utf-8"
-                    if {[string match -nocase "utf-8" $char2]} {
-                      putlog "$char2 == utf-8"
-                    } else {
-                      putlog "$char2 != utf-8"
-                    }
-		} else {
-		    putlog "system is not utf-8"
-		}
-	    }
-	}
-        default {
-          putlog "Either really old http package, or this is the future and theres\
-          a new package I haven't been setup to use."
-        }
-    }
-}
+###
 # DurbyEncode - Encoding system with debugging.
 ##########################################################################
 putlog "Durby v0.2 has been loaded."
