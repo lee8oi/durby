@@ -506,18 +506,18 @@ proc webby {nick uhost handle chan site} {
         upvar #0 $http state
         if {[incr r] > 10} { putserv "privmsg $chan :\002durby\002: redirect error (>10 too deep) \( $url \)" ; return }
         # iterate through the meta array
-          foreach {name value} $state(meta) {
-            # do we have cookies?                                                                                                                                                                             
-            if {[string equal -nocase $name "Set-Cookie"]} {
-              # yes, add them to cookie list                                                                                                                                                                        
-              lappend webbyCookies [lindex [split $value {;}] 0]         
-            }
-          }                                                                                                                                                    
-          if {[info exists webbyCookies] && [llength $webbyCookies]} {
-            set cookies "[join $webbyCookies {;}]"
-          } else {
-            set cookies ""
+        foreach {name value} $state(meta) {
+          # do we have cookies?                                                                                                                                                                             
+          if {[string equal -nocase $name "Set-Cookie"]} {
+            # yes, add them to cookie list                                                                                                                                                                        
+            lappend webbyCookies [lindex [split $value {;}] 0]         
           }
+        }                                                                                                                                                    
+        if {[info exists webbyCookies] && [llength $webbyCookies]} {
+          set cookies "[join $webbyCookies {;}]"
+        } else {
+          set cookies ""
+        }
       }
     } 
   }
@@ -997,6 +997,12 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 # DurbyEncode - Encoding system with debugging.
+# proc call: durby_encode <data> <debug> <swap> <char1> ?char2?
+# <data> = http data
+# <debug> = [1=On 0=Off] - Output debugging information via putlog.
+# <swap> = [1=On 0=Off] - Swap charsets
+# <char1> = first charset - (charset from meta if 2 charsets are specified)
+# ?char2? = Optional charset - (charset from http if 2 charsets are specified)
 ###
 proc durby_encode {data dbg swap char1 {char2 "none"}} {
     set system [encoding system]
