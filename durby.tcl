@@ -46,6 +46,8 @@
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
+# Todo: store when urls were posted and who posted them. Allow script to post  #
+# the information along with results when urls match an already posted url.    #
 ################################################################################
 #!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #!!!!!#################################################################!!!!!!!!#
