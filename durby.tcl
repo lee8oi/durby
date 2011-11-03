@@ -290,7 +290,7 @@ variable urlwatchtoken 0
 setudef flag durby
 bind pub - !webby webby
 bind pub - !durby webby
-bind pubm weburlwatch(pubmflags) {*://*} weburlwatch
+bind pubm - {*://*} weburlwatch
 proc is_patched {} { catch {queuesize a} err1; catch {queuesize \u0754} err2; expr {[string bytelength $err2]!=[string bytelength $err1]} }
 if {![is_patched]} {
   putlog "This bot is not patched for utf-8. Normally we can work around this but if you have problems see: http://eggwiki.org/Utf-8"
