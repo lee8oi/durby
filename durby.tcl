@@ -575,7 +575,6 @@ proc webby {nick uhost handle chan site} {
   ###
   # DurbyEncode
   ##############################################################################
-  
   set s [list] ; set sx [list] ; set type "\( $nc" ; set metas [list]
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
@@ -616,6 +615,9 @@ proc webby {nick uhost handle chan site} {
   } else {
     while {[string match "*  *" $title]} { regsub -all -- {  } [string trim $title] " " title }
   }
+  
+  putlog "after title regexp"
+  
   while {[regexp -nocase {<meta ((?!content).*?) content=(.*?)>} $html - name value]} {
     set name [string trim [lindex [split $name "="] end] "\"' /"]
     set value [string trim $value "\"' /"]
@@ -623,6 +625,7 @@ proc webby {nick uhost handle chan site} {
     regsub -nocase {<meta (?!content).*? content=.*?>} $html "" html
     set metaflag 1
   }
+  putlog "after meta while"
   if {![info exists metaflag]} {
     while {[regexp -nocase {<meta .*?=(.*?) name=(.*?)>} $html - value name]} {
       set name [string trim [lindex [split $name "="] end] "\"' /"]
@@ -631,6 +634,7 @@ proc webby {nick uhost handle chan site} {
       regsub -nocase {<meta .*?=.*? name=.*?>} $html "" html
     }
   }
+  putlog "after exists metaflag"
   if {[info exists w3]} {
     if {![regexp -nocase {<\!DOCTYPE html PUBLIC \"-//W3C//DTD (.*?)"} $html - hv]} {
       if {![regexp -nocase {<!DOCTYPE html PUBLIC \'-//W3C//DTD (.*?)'} $html - hv]} {
@@ -649,6 +653,7 @@ proc webby {nick uhost handle chan site} {
       }
     }
   }
+  putlog "after doc-type regexp"
   if {[llength $metas]} {
     if {[set pos [lsearch -glob [split [string tolower [join $metas "<"]] "<"] "description=*"]] != -1} {
       set desc [lindex [split [lindex $metas $pos] =] 1]
@@ -656,6 +661,7 @@ proc webby {nick uhost handle chan site} {
       set desc ""
     }
   } else { set desc "" }
+  putlog "after llength metas"
   # SPAM
   if {$::webbyShowMisdetection > 0} {
     if {[string length $flaw]} { putserv "privmsg $chan :$flaw" }
@@ -663,8 +669,11 @@ proc webby {nick uhost handle chan site} {
       putserv "privmsg $chan :\002durby\002: Detected \002$char\002 \:\: Http-Package: $cset -> $char3 .. Meta-Charset: $mset -> $char2 \:\:"
     }
   }
+  putlog "after showshowmisdetection"
   if {($::webbyRegShow > 0) || ![info exists w5]} {
-    set title [webbydescdecode $title $char]
+    putlog "inside webbyregshow >0 info exists w5"
+    set title [webbydescdecode $title $char3]
+    putlog "after title descdecode"
     if {[string match -nocase "no title" $title] || ($title == "") && [info exists doctype]} {
       set title "$doctype"
     }
@@ -1008,6 +1017,8 @@ proc idna::punycode_encode_digit {d} {
 ###
 proc durby_encode {data dbg swap char1 {char2 "none"}} {
     set system [encoding system]
+    set char1 [http::CharsetToEncoding $char1]
+    if {($char2 != "none")} {set char2 [http::CharsetToEncoding $char2]}
     if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
     if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
         if {($dbg == 1)} {putlog "conflicting charsets found: $char1 & $char2."}
@@ -1075,6 +1086,7 @@ proc durby_encode {data dbg swap char1 {char2 "none"}} {
                       if {($dbg == 1)} {putlog "$char2 != utf-8"}
                     } else {
                       if {($dbg == 1)} {putlog "$char2 == utf-8"}
+                        set data [encoding convertfrom utf-8 $data]
                     }
 		} else {
 		    if {($dbg == 1)} {putlog "system is not utf-8"}
@@ -1090,10 +1102,10 @@ proc durby_encode {data dbg swap char1 {char2 "none"}} {
 		    if {($dbg == 1)} {putlog "system is utf-8"}
                     if {[string match -nocase "utf-8" $char2]} {
                       if {($dbg == 1)} {putlog "char2 == utf-8"}
-                      set data [encoding convertto $char2 $data]
+                      set data [encoding convertto [string tolower $char2] $data]
                     } else {
                       if {($dbg == 1)} {putlog "char2 != utf-8"}
-                      set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
+                      set data [encoding convertto "utf-8" [encoding convertfrom [string tolower $char2] $data]]
                     }
 		} else {
 		    if {($dbg == 1)} {putlog "system is not utf-8"}
@@ -1102,6 +1114,44 @@ proc durby_encode {data dbg swap char1 {char2 "none"}} {
 	}
     }
     return $data
+}
+# http::CharsetToEncoding --
+#
+#   Tries to map a given IANA charset to a tcl encoding.  If no encoding
+#   can be found, returns binary.
+#
+
+proc CharsetToEncoding {charset} {
+	variable encodings
+
+	set charset [string tolower $charset]
+	if {[regexp {iso-?8859-([0-9]+)} $charset -> num]} {
+		set encoding "iso8859-$num"
+	} elseif {[regexp {iso-?2022-(jp|kr)} $charset -> ext]} {
+		set encoding "iso2022-$ext"
+	} elseif {[regexp {shift[-_]?js} $charset]} {
+		set encoding "shiftjis"
+	} elseif {[regexp {(?:windows|cp)-?([0-9]+)} $charset -> num]} {
+		set encoding "cp$num"
+	} elseif {$charset eq "us-ascii"} {
+		set encoding "ascii"
+	} elseif {[regexp {(?:iso-?)?lat(?:in)?-?([0-9]+)} $charset -> num]} {
+		switch -- $num {
+			5 {set encoding "iso8859-9"}
+			1 - 2 - 3 {
+				set encoding "iso8859-$num"
+			}
+		}
+	} else {
+		# other charset, like euc-xx, utf-8,...  may directly map to encoding
+		set encoding $charset
+	}
+	set idx [lsearch -exact $encodings $encoding]
+	if {$idx >= 0} {
+		return $encoding
+	} else {
+		return "binary"
+	}
 }
 ###
 # DurbyEncode - Encoding system with debugging.
