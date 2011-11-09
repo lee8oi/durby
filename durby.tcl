@@ -163,9 +163,10 @@ variable webbyMaxRegexp   9
 # 3 --> http://cli.gs
 # 4 --> randomly select one of the four above ( 2,0,0,3,1..etc )
 # 5 --> cycle through the four above ( 0,1,2,3,0,1..etc )
-# ---  [ 0 - 5 ]
+# 6 --> disable url shortening.
+# ---  [ 0 - 6 ]
 #                        +-+
-variable webbyShortType   5
+variable webbyShortType   6
 #                        +-+
 #
 # regexp capture limit
@@ -668,8 +669,12 @@ proc webby {nick uhost handle chan site} {
     if {[string match -nocase "no title" $title] || ($title == "") && [info exists doctype]} {
       set title "$doctype"
     }
-    set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
-    set result ""
+    if {($::webbyShortType != 6)} {
+      set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
+      set result ""
+    } else {
+      set tiny "\( $fullquery \)"
+    }
     if {[info exists vf] || ($::durbyVerbose > 0)} {
       putserv "privmsg $chan :~ $title $tiny$type"
       set verbose 1
