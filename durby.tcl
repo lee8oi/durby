@@ -575,6 +575,7 @@ proc webby {nick uhost handle chan site} {
   ###
   # DurbyEncode
   ##############################################################################
+  
   set s [list] ; set sx [list] ; set type "\( $nc" ; set metas [list]
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
@@ -615,9 +616,6 @@ proc webby {nick uhost handle chan site} {
   } else {
     while {[string match "*  *" $title]} { regsub -all -- {  } [string trim $title] " " title }
   }
-  
-  putlog "after title regexp"
-  
   while {[regexp -nocase {<meta ((?!content).*?) content=(.*?)>} $html - name value]} {
     set name [string trim [lindex [split $name "="] end] "\"' /"]
     set value [string trim $value "\"' /"]
@@ -625,7 +623,6 @@ proc webby {nick uhost handle chan site} {
     regsub -nocase {<meta (?!content).*? content=.*?>} $html "" html
     set metaflag 1
   }
-  putlog "after meta while"
   if {![info exists metaflag]} {
     while {[regexp -nocase {<meta .*?=(.*?) name=(.*?)>} $html - value name]} {
       set name [string trim [lindex [split $name "="] end] "\"' /"]
@@ -634,7 +631,6 @@ proc webby {nick uhost handle chan site} {
       regsub -nocase {<meta .*?=.*? name=.*?>} $html "" html
     }
   }
-  putlog "after exists metaflag"
   if {[info exists w3]} {
     if {![regexp -nocase {<\!DOCTYPE html PUBLIC \"-//W3C//DTD (.*?)"} $html - hv]} {
       if {![regexp -nocase {<!DOCTYPE html PUBLIC \'-//W3C//DTD (.*?)'} $html - hv]} {
@@ -653,7 +649,6 @@ proc webby {nick uhost handle chan site} {
       }
     }
   }
-  putlog "after doc-type regexp"
   if {[llength $metas]} {
     if {[set pos [lsearch -glob [split [string tolower [join $metas "<"]] "<"] "description=*"]] != -1} {
       set desc [lindex [split [lindex $metas $pos] =] 1]
@@ -661,7 +656,6 @@ proc webby {nick uhost handle chan site} {
       set desc ""
     }
   } else { set desc "" }
-  putlog "after llength metas"
   # SPAM
   if {$::webbyShowMisdetection > 0} {
     if {[string length $flaw]} { putserv "privmsg $chan :$flaw" }
@@ -669,11 +663,8 @@ proc webby {nick uhost handle chan site} {
       putserv "privmsg $chan :\002durby\002: Detected \002$char\002 \:\: Http-Package: $cset -> $char3 .. Meta-Charset: $mset -> $char2 \:\:"
     }
   }
-  putlog "after showshowmisdetection"
   if {($::webbyRegShow > 0) || ![info exists w5]} {
-    putlog "inside webbyregshow >0 info exists w5"
     set title [webbydescdecode $title $char3]
-    putlog "after title descdecode"
     if {[string match -nocase "no title" $title] || ($title == "") && [info exists doctype]} {
       set title "$doctype"
     }
