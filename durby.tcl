@@ -166,7 +166,7 @@ variable webbyMaxRegexp   9
 # 6 --> disable url shortening.
 # ---  [ 0 - 6 ]
 #                        +-+
-variable webbyShortType   6
+variable webbyShortType   5
 #                        +-+
 #
 # regexp capture limit
