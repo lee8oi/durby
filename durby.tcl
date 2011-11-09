@@ -1077,7 +1077,7 @@ proc durby_encode {data dbg swap char1 {char2 "none"}} {
                       if {($dbg == 1)} {putlog "$char2 != utf-8"}
                     } else {
                       if {($dbg == 1)} {putlog "$char2 == utf-8"}
-                        set data [encoding convertfrom utf-8 $data]
+                        #set data [encoding convertfrom utf-8 $data]
                     }
 		} else {
 		    if {($dbg == 1)} {putlog "system is not utf-8"}
