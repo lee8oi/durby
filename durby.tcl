@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.5 + #
+#                                                                    + 0.2.6 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -153,6 +153,13 @@ variable webbySplit   403
 #                        +-+
 variable webbyMaxRegexp   9
 #                        +-+
+#
+#
+# Show urls in output messages?
+# set this to 1 to enable urls
+#                      +-+
+variable durbyShowUrls  0
+#                      +-+
 #
 # which method should be used when shortening the url?
 # (0-3) will only use the one you've chosen.
@@ -669,11 +676,15 @@ proc webby {nick uhost handle chan site} {
     if {[string match -nocase "no title" $title] || ($title == "") && [info exists doctype]} {
       set title "$doctype"
     }
-    if {($::webbyShortType != 6)} {
-      set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
-      set result ""
+    if {($::durbyShowUrls > 0)} {
+      if {($::webbyShortType != 6)} {
+        set tiny "\( [webbytiny $fullquery $::webbyShortType] \)"
+        set result ""
+      } else {
+        set tiny "\( $fullquery \)"
+      }
     } else {
-      set tiny "\( $fullquery \)"
+      set tiny ""
     }
     if {[info exists vf] || ($::durbyVerbose > 0)} {
       putserv "privmsg $chan :~ $title $tiny$type"
