@@ -689,7 +689,7 @@ proc webby {nick uhost handle chan site} {
     }
     if {![info exists w3]} {
       if {[info exists vf] || ($::durbyVerbose > 0)} {
-        foreach line [line_wrap [webbydescdecode $desc $char]] {
+        foreach line [line_wrap [webbydescdecode $desc $char3]] {
           if {([string length $line] > 1)} {
             putserv "privmsg $chan :~ $line"
           }
