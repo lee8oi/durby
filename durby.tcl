@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.6 + #
+#                                                                    + 0.2.7 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -34,15 +34,11 @@
 # display the results at once instead of posting each result individually when #
 # urlwatch finds multiple links. (Verbose mode disables this feature).         #
 #                                                                              #
-# Encoding Debugging - When having issues with characters not displaying       #
-# correctly you can use "!durby --encoding-debug <url>" to log extra output    #
-# which might help solve encoding bugs.                                        #
-#                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
 #       [--post] [--override] [--nostrip] [--swap]                             #
-#       [--regexp regexp-here--]  [--verbose] [--encoding-debug]               #
+#       [--regexp regexp-here--]  [--verbose]                                  #
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
@@ -115,52 +111,32 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 ################################################################################
 # CONFIGURATION
-#
 # do you want to display header attributes always?
 # --- [ 0 no / 1 yes ]
-#                    +-+
-variable webbyheader  0
-#                    +-+
-#
+variable webbyheader 0
+
 # do you want to display x-header attributes always?
 # --- [ 0 no / 1 yes ]
-#                      +-+
-variable webbyXheader   0
-#                      +-+
-#
+variable webbyXheader 0
+
 # do you want to display html attributes always?
 # --- [ 0 no / 1 yes ]
-#                  +-+
-variable webbydoc   0
-#                  +-+
-#
+variable webbydoc 0
+
 # if using the regexp (regular expression) engine do
 # you want to still show title and description of webpage?
 # --- [ 0 no / 1 yes ]
-#                      +-+
-variable webbyRegShow   0
-#                      +-+
-#
+variable webbyRegShow 0
+
 # max length of each line of your regexp capture?
 # --- [ integer ]
-#                    +---+
-variable webbySplit   403
-#                    +---+
-#
+variable webbySplit 403
+
 # how many regexp captures is the maximum to issue?
 # presently going above 9, will only result in 9...
 # --- [ 1 - 9 ]
-#                        +-+
-variable webbyMaxRegexp   9
-#                        +-+
-#
-#
-# Show urls in output messages?
-# set this to 1 to enable urls
-#                      +-+
-variable durbyShowUrls  0
-#                      +-+
-#
+variable webbyMaxRegexp 9
+
 # which method should be used when shortening the url?
 # (0-3) will only use the one you've chosen.
 # (4-5) will use them all.
@@ -170,12 +146,9 @@ variable durbyShowUrls  0
 # 3 --> http://cli.gs
 # 4 --> randomly select one of the four above ( 2,0,0,3,1..etc )
 # 5 --> cycle through the four above ( 0,1,2,3,0,1..etc )
-# 6 --> disable url shortening.
-# ---  [ 0 - 6 ]
-#                        +-+
-variable webbyShortType   5
-#                        +-+
-#
+# ---  [ 0 - 5 ]
+variable webbyShortType 5
+
 # regexp capture limit
 # this is how wide each regexp capture can be, prior to it
 # being cleaned up for html elements. this can take a very
@@ -183,53 +156,41 @@ variable webbyShortType   5
 # variable is there to protect your bot lagging forever and
 # people giving replies with tons of html to lag it.
 # --- [ integer ]
-#                      +----+
-variable regexp_limit   3000
-#                      +----+
-#
+variable regexp_limit 3000
+
+# Adjusts time in last-modified which gives you durations ago
+# Set this in seconds. Most people should leave this set to 0.
+# 
+variable webbyTimeAdjust 3600
+
 # how should we treat encodings?
+# 0 - do nothing, use eggdrops internal encoding whatever that may be.
 # 1 - use the encoding the website is telling us to use.
 #     This is the option everyone should use primarily.
 # 2 - Force a static encoding for everything. If you use option 2,
 #     please specify the encoding in the setting below this one.
 # --- [ 0 off-internal / 1 automatic / 2 forced ]
-#                    +-+
-variable webbyDynEnc  1
-#                    +-+
-#
+variable webbyDynEnc 1
+
 # option 2, force encoding
 # if you've chosen this above then you must define what
 # encoding we are going to force for all queries...
 # --- [ encoding ]
-#                  +-----------+
-variable webbyEnc   "iso8859-1"
-#                  +-----------+
-#
+variable webbyEnc "iso8859-1"
+
 # fix Http-Package conflicts?
 # this will disregard http-packages detected charset if it appears
 # different from the character set detected within the meta's of
 # the html and vice versa, you can change this behavior
 # on-the-fly using the --swap parameter.
 # --- [ 0 no / 1 use http-package / 2 use html meta's ]
-#                          +-+
-variable webbyFixDetection  2
-#                          +-+
-#
+variable webbyFixDetection 2
+
 # report Http-package conflicts?
 # this will display Http-package conflict errors to the
 # channel, and will show corrections made to any encodings.
 # --- [ 0 never / 1 when the conflict happens / 2 always ]
-#                              +-+
-variable webbyShowMisdetection  0
-#                              +-+
-#
-# grab urls from channel messages?
-# this will set Durby to watch for urls in channel and
-# post url information when one is found.
-#                      +-+
-variable durbyUrlWatch  1
-#                      +-+
-#
+variable webbyShowMisdetection 0
 # ignore urls matching ignore pattern?
 # enabling this option will set webby to ignore urls that match
 # any pattern in the patterns list.
@@ -256,6 +217,11 @@ variable patterns {
   #*porn.com*
 }
 
+# Show urls in output messages?
+# set this to 1 to enable urls
+#                      +-+
+variable durbyShowUrls  0
+#                      +-+
 # Use verbose mode by default?
 # if enabled durby will always show type information and description of url
 # along with the standard output. Otherwise use --verbose switch to request the
@@ -264,7 +230,14 @@ variable patterns {
 #                      +-+
 variable durbyVerbose   0
 #                      +-+
-
+#
+# grab urls from channel messages?
+# this will set Durby to watch for urls in channel and
+# post url information when one is found.
+#                      +-+
+variable durbyUrlWatch  1
+#                      +-+
+#
 # Collect titles in one message?
 # if this option is enabled urlwatch will collect titles in one message and
 # post them instead of posting individually.
@@ -273,22 +246,20 @@ variable durbyVerbose   0
 variable durbyCollectTitles  1
 #                           +-+
 #
-# END OF CONFIGURATION
-################################################################################
-#!!!!!!!!!!!!!!!!!!!!!!!!!!EXPERTS ONLY BELOW !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-################################################################################
+# <--- end of config; script begins
+
 package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
 if {([lsearch [info commands] zlib] == -1) && ([catch {package require zlib} error] !=0)} {
   if {([catch {package require Trf} error] == 0) || ([lsearch [info commands] zip] != -1)} {
-    putlog "Durby: Found trf package. Fast lane activated!"
+    putlog "Webby: Found trf package. Fast lane activated!"
     set webbyTrf 1
   } else {
-    putlog "Durby: Cannot find zlib or trf package! Gzipped url queries will not be used. Enjoy the slow lane! :P"
+    putlog "Webby: Cannot find zlib or trf package! Gzipped url queries will not be used. Enjoy the slow lane! :P"
     set webbyNoGzip 1
   }
 } else {
-  putlog "Durby: Found zlib package. Fast lane activated!"
+  putlog "Webby: Found zlib package. Fast lane activated!"
 }
 set weburlwatch(titlegrab) 0
 set weburlwatch(pubmflags) "-|-"
@@ -300,10 +271,29 @@ variable urlwatchtoken 0
 setudef flag durby
 bind pub - !webby webby
 bind pub - !durby webby
+bind pub - !web webby
+bind pub - !webbycrumble webbycrumble
+bind pub - !webbycookie webbycookie
 bind pubm - {*://*} weburlwatch
-proc is_patched {} { catch {queuesize a} err1; catch {queuesize \u0754} err2; expr {[string bytelength $err2]!=[string bytelength $err1]} }
-if {![is_patched]} {
-  putlog "This bot is not patched for utf-8. Normally we can work around this but if you have problems see: http://eggwiki.org/Utf-8"
+proc webbycrumble {nick uhost handle chan text} {
+  if {![channel get $chan webby]} { return }
+  global webbyCookie
+  putserv "privmsg $chan :\002durby\002: Crumbling \"$::webbyCookies\"..."
+  set webbyCookie ""
+}
+
+proc webbycookie {nick uhost handle chan text} {
+  if {![channel get $chan webby]} { return }
+  global webbyCookie
+  if {[info exists webbyCookie]} {
+    if {[string length $webbyCookie]} {
+      putserv "privmsg $chan :\002durby\002: Cookie \"$::webbyCookie\"..."
+    } else {
+      putserv "privmsg $chan :\002durby\002: Cookie is empty."
+    }
+  } else {
+    putserv "privmsg $chan :\002durby\002: Cookie does not exist."
+  }
 }
 proc weburlwatch {nick host user chan text} {
   # watch for web urls in channel
@@ -338,11 +328,15 @@ proc weburlwatch {nick host user chan text} {
   # change to return 0 if you want the pubm trigger logged additionally..
   return 1
 }
-variable curchan ""
+
 proc webby {nick uhost handle chan site} {
-  set ::curchan $chan
-  if {![channel get $chan durby]} { return }
-  if {[regsub -nocase -all -- {--encoding-debug} $site "" site]} { set ed 0 }
+  if {![channel get $chan webby]} { return }
+  global webbyCookie
+  if {![info exists ::webbyCookie]} {
+    set ::webbyCookie "" ; set cookies ""
+  } else {
+    set cookies $::webbyCookie
+  }
   if {[regsub -nocase -all -- {--verbose} $site "" site]} { set vf 0 }
   if {[regsub -nocase -all -- {--header} $site "" site]} { set w1 0 }
   if {[regsub -nocase -all -- {--validate} $site "" site]} { set w1 0 ; set w2 0 ; set w3 0 ; set w10 0 }
@@ -363,12 +357,6 @@ proc webby {nick uhost handle chan site} {
     }
     set w5 0
     regsub -nocase -- {--regexp .*?--} $site "" site
-  }
-  foreach site [split $site] {
-    if {[string match "*://*" $site]} {
-      set site $site
-      break
-    }
   }
   #check ignore list
   if {$::durbyPatternIgnore > 0} {
@@ -432,13 +420,21 @@ proc webby {nick uhost handle chan site} {
     if {[info exists w10]} {
        catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers $gzp -validate 1 -timeout 10000]} error
     } else {
-       catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers $gzp -timeout 10000]} error
-    }
+       if {[string length $cookies]} {
+     catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers "$gzp Cookie $cookies" -timeout 10000]} error
+       } else {
+     catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers $gzp -timeout 10000]} error
+       }
+     }
   } else {
     if {[info exists w10]} {
       catch {set http [::http::geturl "$fullquery" -headers $gzp -validate 1 -timeout 10000]} error
     } else {
-      catch {set http [::http::geturl "$fullquery" -headers $gzp -timeout 10000]} error
+       if {[string length $cookies]} {
+     catch {set http [::http::geturl "$fullquery" -headers "$gzp Cookie $cookies" -timeout 10000]} error
+       } else {
+         catch {set http [::http::geturl "$fullquery" -headers $gzp -timeout 10000]} error
+       }
     }
     set url $fullquery ; set query ""
   }
@@ -467,12 +463,54 @@ proc webby {nick uhost handle chan site} {
   } else {
     set cookies ""
   }
+  set html [::http::data $http]
+  if {[string match *t.co* $fullquery] && [regexp {<META http-equiv="refresh" content="[0-9]\;URL\=(.*?)">} $html - value]} {
+    if {[info exists w10]} {
+      if {[string length $cookies]} {
+        catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -validate 1 -timeout [expr 1000 * 10]]} error
+      } else {
+        catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -validate 1 -timeout [expr 1000 * 10]]} error
+      }
+    } else {
+      if {[string length $cookies]} {
+        catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -timeout [expr 1000 * 10]]} error
+      } else {
+        catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -timeout [expr 1000 * 10]]} error
+      }
+    }
+    if {![string match -nocase "::http::*" $error]} {
+      putserv "privmsg $chan :\002durby\002: [string totitle $error] \( $value \)"
+      return 0
+    }
+    if {![string equal -nocase [::http::status $http] "ok"]} {
+      putserv "privmsg $chan :\002durby\002: [string totitle [::http::status $http]] \( $value \)"
+      return 0
+    }
+    upvar #0 $http state
+    if {![info exists state(meta)]} { putserv "privmsg $chan :\002durby\002: unsupported URL error \( $fullquery \)" ; return 0 }
+    set html [::http::data $http]
+    set url [string map {" " "%20"} $value]
+    set redir [::http::ncode $http]
+    # iterate through the meta array
+    foreach {name value} $state(meta) {
+      # do we have cookies?                                                                                                                                                                             
+      if {[string equal -nocase $name "Set-Cookie"]} {
+        # yes, add them to cookie list                                                                                                                                                                          
+        lappend webbyCookies [lindex [split $value {;}] 0]                                                                                                                                                             
+      }                                                                                                                                                                                                             
+    }
+    if {[info exists webbyCookies] && [llength $webbyCookies]} {
+      set cookies "[join $webbyCookies {;}]"
+    } else {
+      set cookies ""
+    }
+  }
   # REDIRECT ?
   set r 0
   while {[string match "*${redir}*" "307|303|302|301" ]} {
     foreach {name value} $state(meta) {
-       if {[regexp -nocase ^location$ $name]} {
-         if {![string match "http*" $value]} {
+      if {[regexp -nocase ^location$ $name]} {
+        if {![string match "http*" $value]} {
           if {![string match "/" [string index $value 0]]} {
             set value "[join [lrange [split $url "/"] 0 2] "/"]/$value"
           } else {
@@ -492,15 +530,15 @@ proc webby {nick uhost handle chan site} {
         }
         if {[info exists w10]} {
           if {[string length $cookies]} {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -validate 1 -timeout [expr {1000 * 10}]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -validate 1 -timeout [expr 1000 * 10]]} error
           } else {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -validate 1 -timeout [expr {1000 * 10}]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -validate 1 -timeout [expr 1000 * 10]]} error
           }
         } else {
           if {[string length $cookies]} {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -timeout [expr {1000 * 10}]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"] Cookie $cookies" -timeout [expr 1000 * 10]]} error
           } else {
-            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -timeout [expr {1000 * 10}]]} error
+            catch {set http [::http::geturl "[string map {" " "%20"} $value]" -headers "[string trim "Referer $url $gzp"]" -timeout [expr 1000 * 10]]} error
           }
         }
         if {![string match -nocase "::http::*" $error]} {
@@ -512,33 +550,35 @@ proc webby {nick uhost handle chan site} {
           return 0
         }
         set redir [::http::ncode $http]
+        set html [::http::data $http]
         set url [string map {" " "%20"} $value]
         upvar #0 $http state
         if {[incr r] > 10} { putserv "privmsg $chan :\002durby\002: redirect error (>10 too deep) \( $url \)" ; return }
         # iterate through the meta array
-        foreach {name value} $state(meta) {
-          # do we have cookies?                                                                                                                                                                             
-          if {[string equal -nocase $name "Set-Cookie"]} {
-            # yes, add them to cookie list                                                                                                                                                                        
-            lappend webbyCookies [lindex [split $value {;}] 0]         
+        #if {![string length cookies]} {
+          foreach {name value} $state(meta) {
+            # do we have cookies?                                                                                                                                                                             
+            if {[string equal -nocase $name "Set-Cookie"]} {
+              # yes, add them to cookie list                                                                                                                                                                        
+              lappend webbyCookies [lindex [split $value {;}] 0]         
+            }
+          }                                                                                                                                                    
+          if {[info exists webbyCookies] && [llength $webbyCookies]} {
+            set cookies "[join $webbyCookies {;}]"
+          } else {
+            set cookies ""
           }
-        }                                                                                                                                                    
-        if {[info exists webbyCookies] && [llength $webbyCookies]} {
-          set cookies "[join $webbyCookies {;}]"
-        } else {
-          set cookies ""
-        }
+        #}
       }
     } 
   }
-  set html [::http::data $http]
   set bl [string bytelength $html]
   set nc [::http::ncode $http] ; set flaw "" 
   if {![info exists webbyNoGzip]} {
     foreach {name value} $state(meta) {
       if {[regexp -nocase ^Content-Encoding$ $name]} {
         if {[string equal -nocase "gzip" $value] && [string length $html]} {
-          if {![info exists webbyTrf]} {
+      if {![info exists webbyTrf]} {
             catch { set bl "$bl bytes (gzip); [string bytelength [set html [zlib inflate [string range $html 10 [expr { [string length $html] - 8 } ]]]]]" }
           } else {
             catch { set bl "$bl bytes (gzip); [string bytelength [set html [zip -mode decompress -nowrap 1 [string range $html 10 [expr { [string length $html] - 8 } ]]]]]" }
@@ -549,72 +589,110 @@ proc webby {nick uhost handle chan site} {
     }
   }
   if {[regexp -nocase {"Content-Type" content=".*?; charset=(.*?)".*?>} $html - char]} {
-    set char [string trim [string trim $char "\"' /"] {;}]
+    set char [string map {"\\n" ""} [string trim [string trim $char "\"' /"] {;}]]
     regexp {^(.*?)"} $char - char
     set mset $char
     if {![string length $char]} { set char "None Given" ; set char2 "None Given" }
     set char2 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $char]]
   } else {
     if {[regexp -nocase {<meta content=".*?; charset=(.*?)".*?>} $html - char]} {
-      set char [string trim $char "\"' /"]
+      set char [string map {"\\n" ""} [string trim $char "\"' /"]]
       regexp {^(.*?)"} $char - char
       set mset $char
+      if {![string length $char]} { set char "None Given" ; set char2 "None Given" }
+      set char2 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $char]]
+    } elseif {[regexp -nocase {encoding="(.*?)"} $html - char]} {
+      set mset [string map {"\\n" ""} $char] ; set char [string trim $char]
       if {![string length $char]} { set char "None Given" ; set char2 "None Given" }
       set char2 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $char]]
     } else {
       set char "None Given" ; set char2 "None Given" ; set mset "None Given"
     }
   }
-  set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
-  
-  ##############################################################################
-  # DurbyEncode.
-  ###
-  if {([info exists ed])} {set dbg 1} else {set dbg 0}
-  if {[info exists w8]} {set cswap 1} else {set cswap 0}
-  if {![string match -nocase "none given" $char2]} {
-      if {($dbg == 1)} {putlog "char2 is valid. running durbyencode with $char2 and $char3 charsets"}
-      set html [durby_encode $html $dbg $cswap $char2 $char3]
+  set char3 [string map {"\\n" ""} [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} [string trim $state(charset) {;}]]]]
+  if {[string equal $char $state(charset)] && [string equal $char $char2] && ![string equal -nocase "none given" $char]} {
+    set char [string map {"\\n" ""} [string trim $state(charset) {;}]]
+    set flaw ""
   } else {
-    # 
-    if {($dbg == 1)} {putlog "char2 is not given. running durbyencode with $char3"}
-    set html [durby_encode $html $dbg $cswap $char3]
+    if {![string equal -nocase $char2 $char3] && ![string equal -nocase "none given" $char2] && $::webbyFixDetection > 0} {
+      if {$::webbyFixDetection > 0} {
+        switch $::webbyFixDetection {
+          1 { if {![info exists w8]} {
+                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict."} { set flaw "" }
+        set html [webbyConflict $html $char3 $char2 2 [info exists w9]]
+                set char [string trim $char3 {;}]
+              } else {
+                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
+        set html [webbyConflict $html $char3 $char2 1 [info exists w9]]
+                set char [string trim $char2 {;}]
+              }
+            }
+          2 { if {![info exists w8]} {
+                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! http-package reports: $char3 .. using charset detected from html meta tagging: $char2 to avoid conflict." } { set flaw "" }
+        set html [webbyConflict $html $char3 $char2 1 [info exists w9]]
+                set char [string trim $char2 {;}]
+              } else {
+                if {$::webbyShowMisdetection > 0 } { set flaw "\002durby\002: conflict! html meta tagging reports: $char2 .. using charset detected from http-package: $char3 to avoid conflict." } { set flaw "" }
+        set html [webbyConflict $html $char3 $char2 2 [info exists w9]]
+                set char [string trim $char3 {;}]
+              }
+            }
+         }
+      } else {
+        set flaw ""
+        set char [string trim $char3 {;}]
+      }
+    } else {
+      set char [string trim $char3 {;}]
+      if {[catch {package present http 2.7}]} {
+        # assume http package 2.5.3
+        if {[string equal -nocase "utf-8" [encoding system]]} {
+          if {![string equal -nocase "utf-8" $char3]} { 
+            set html [encoding convertfrom $char3 $html]
+          } else {
+            #set html [encoding convertto $char3 $html]
+          }
+        } elseif {![string equal -nocase "utf-8" [encoding system]]} {
+          if {[string equal "utf-8" $char3]} {
+            if {![info exists w9]} { set html [encoding convertto $char3 $html] }
+          } else {
+        set html [encoding convertto "utf-8" [encoding convertfrom $char3 $html]]
+          }
+        }
+        set flaw ""
+      } else {
+        # we have http package 2.7
+        if {![string equal -nocase "utf-8" [encoding system]]} {
+          set html [encoding convertto $char3 $html]
+        }
+      }
+    }
   }
-  ###
-  # DurbyEncode
-  ##############################################################################
-  
   set s [list] ; set sx [list] ; set type "\( $nc" ; set metas [list]
   if {[string equal -nocase "none given" $char]} { set char [string trim $state(charset) {;}] }
   set cset $state(charset)
   switch $::webbyDynEnc {
-    2 {
-      set enc [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $::webbyEnc]
-      if {[lsearch -exact [encoding names] $enc] != -1} {
-        set html [encoding convertto $enc $html]
-      }
-    }
+   
+   2 { set html [incithencode $html [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $::webbyEnc]] }
   }
-  set red ""; if {$r > 0} { set red "; $r redirects" }
-  set doctype ""
+  set red ""; if {$r > 0} { set red "; $r redirects" } ; set end ""
   foreach {name value} $state(meta) {
     if {[string match -nocase "content-type" $name]} {
-      set doctype [string trim [lindex [split $value] 0] ";"]
       append type "; [lindex [split $value ";"] 0]; $char; ${bl} bytes$red"
-      continue
     }
+    if {[string match -nocase "last-modified" $name]} { set end " \)\( [webbyTime $value]" }
     if {[string match -nocase "set-cookie" $name]} { continue }
-    if {[string match -nocase "x-*" $name]} { lappend sx "\002$name\002=$value" ; continue}
-    lappend s "\002$name\002=$value"
+    if {[string match -nocase "x-*" $name]} { lappend sx "\002$name\002=$value" ; continue }
+    lappend s "\002$name\002=[string trim $value {;}]"
   }
-  append type " \)" ; set e ""
+  append type "$end \)" ; set e ""
   ::http::cleanup $http
   regsub -all {(?:\n|\t|\v|\r|\x01)} $html " " html
-    # DEBUG DEBUG                    
-    set junk [open "durby.txt" w]
-    puts $junk $html
-    set ::delTemp $html
-    close $junk
+     # DEBUG DEBUG                    
+     set junk [open "webby.txt" w]
+     puts $junk $html
+     set ::delTemp $html
+     close $junk
   if {![regexp -nocase {<title.*?>(.*?)</title>} $html - title]} {
     if {[info exists w10]} {
       set title "\002Validated\002: [join [lrange [split $fullquery /] 0 2] /]"
@@ -664,6 +742,7 @@ proc webby {nick uhost handle chan site} {
       set desc ""
     }
   } else { set desc "" }
+  set webbyCookie $cookies
   # SPAM
   if {$::webbyShowMisdetection > 0} {
     if {[string length $flaw]} { putserv "privmsg $chan :$flaw" }
@@ -752,6 +831,31 @@ proc webby {nick uhost handle chan site} {
   if {($::durbyCollectTitles > 0) && ($::urlwatchtoken == 1)} {return $result}
 }
 
+proc webbyConflict {html in out type gz} {
+  switch -- $type {
+    "1" {  set html [encoding convertfrom [string map {"\\n" ""} $out] $html]
+	     if {![string equal -nocase "utf-8" [encoding system]]} { set html [encoding convertto utf-8 $html] }
+         }
+    "2" {  set html [encoding convertfrom $out $html]
+	     if {![string equal -nocase "utf-8" [encoding system]]} { set html [encoding convertto utf-8 $html] }
+         }
+    }
+  return $html
+}
+proc incithencode {text enc} {
+  if {[lsearch -exact [encoding names] $enc] != -1} {
+    set text [encoding convertto $enc $text]
+  }
+  return $text
+}
+
+proc incithdecode {text enc {en2 "utf-8"}} {
+  if {[lsearch -exact [encoding names] $enc] != -1} {
+    set text [encoding convertto $en2 [encoding convertfrom $enc $text]]
+  }
+  return $text
+}
+
 proc unhtml {text} {
   regsub -all "(?:<b>|</b>|<b />|<em>|</em>|<strong>|</strong>)" $text "\002" text
   regsub -all "(?:<u>|</u>|<u />)" $text "\037" text
@@ -764,102 +868,110 @@ proc unhtml {text} {
 }
 
 proc webbydescdecode {text char} {
-  # code below is neccessary to prevent numerous html markups
-  # from appearing in the output (ie, &quot;, &#5671;, etc)
-  # stolen (borrowed is a better term) from perplexa's urban
-  # dictionary script..
-  if {![string match *&* $text]} {return $text}
-  if {[string match "*;*" $char]} {set char [string trim $char {;}] }
-  set escapes {
-               &nbsp; \xa0 &iexcl; \xa1 &cent; \xa2 &pound; \xa3 &curren; \xa4
-               &yen; \xa5 &brvbar; \xa6 &sect; \xa7 &uml; \xa8 &copy; \xa9
-               &ordf; \xaa &laquo; \xab &not; \xac &shy; \xad &reg; \xae
-               &macr; \xaf &deg; \xb0 &plusmn; \xb1 &sup2; \xb2 &sup3; \xb3
-               &acute; \xb4 &micro; \xb5 &para; \xb6 &middot; \xb7 &cedil; \xb8
-               &sup1; \xb9 &ordm; \xba &raquo; \xbb &frac14; \xbc &frac12; \xbd
-               &frac34; \xbe &iquest; \xbf &Agrave; \xc0 &Aacute; \xc1 &Acirc; \xc2
-               &Atilde; \xc3 &Auml; \xc4 &Aring; \xc5 &AElig; \xc6 &Ccedil; \xc7
-               &Egrave; \xc8 &Eacute; \xc9 &Ecirc; \xca &Euml; \xcb &Igrave; \xcc
-               &Iacute; \xcd &Icirc; \xce &Iuml; \xcf &ETH; \xd0 &Ntilde; \xd1
-               &Ograve; \xd2 &Oacute; \xd3 &Ocirc; \xd4 &Otilde; \xd5 &Ouml; \xd6
-               &times; \xd7 &Oslash; \xd8 &Ugrave; \xd9 &Uacute; \xda &Ucirc; \xdb
-               &Uuml; \xdc &Yacute; \xdd &THORN; \xde &szlig; \xdf &agrave; \xe0
-               &aacute; \xe1 &acirc; \xe2 &atilde; \xe3 &auml; \xe4 &aring; \xe5
-               &aelig; \xe6 &ccedil; \xe7 &egrave; \xe8 &eacute; \xe9 &ecirc; \xea
-               &euml; \xeb &igrave; \xec &iacute; \xed &icirc; \xee &iuml; \xef
-               &eth; \xf0 &ntilde; \xf1 &ograve; \xf2 &oacute; \xf3 &ocirc; \xf4
-               &otilde; \xf5 &ouml; \xf6 &divide; \xf7 &oslash; \xf8 &ugrave; \xf9
-               &uacute; \xfa &ucirc; \xfb &uuml; \xfc &yacute; \xfd &thorn; \xfe
-               &yuml; \xff &fnof; \u192 &Alpha; \u391 &Beta; \u392 &Gamma; \u393 &Delta; \u394
-               &Epsilon; \u395 &Zeta; \u396 &Eta; \u397 &Theta; \u398 &Iota; \u399
-               &Kappa; \u39A &Lambda; \u39B &Mu; \u39C &Nu; \u39D &Xi; \u39E
-               &Omicron; \u39F &Pi; \u3A0 &Rho; \u3A1 &Sigma; \u3A3 &Tau; \u3A4
-               &Upsilon; \u3A5 &Phi; \u3A6 &Chi; \u3A7 &Psi; \u3A8 &Omega; \u3A9
-               &alpha; \u3B1 &beta; \u3B2 &gamma; \u3B3 &delta; \u3B4 &epsilon; \u3B5
-               &zeta; \u3B6 &eta; \u3B7 &theta; \u3B8 &iota; \u3B9 &kappa; \u3BA
-               &lambda; \u3BB &mu; \u3BC &nu; \u3BD &xi; \u3BE &omicron; \u3BF
-               &pi; \u3C0 &rho; \u3C1 &sigmaf; \u3C2 &sigma; \u3C3 &tau; \u3C4
-               &upsilon; \u3C5 &phi; \u3C6 &chi; \u3C7 &psi; \u3C8 &omega; \u3C9
-               &thetasym; \u3D1 &upsih; \u3D2 &piv; \u3D6 &bull; \u2022
-               &hellip; \u2026 &prime; \u2032 &Prime; \u2033 &oline; \u203E
-               &frasl; \u2044 &weierp; \u2118 &image; \u2111 &real; \u211C
-               &trade; \u2122 &alefsym; \u2135 &larr; \u2190 &uarr; \u2191
-               &rarr; \u2192 &darr; \u2193 &harr; \u2194 &crarr; \u21B5
-               &lArr; \u21D0 &uArr; \u21D1 &rArr; \u21D2 &dArr; \u21D3 &hArr; \u21D4
-               &forall; \u2200 &part; \u2202 &exist; \u2203 &empty; \u2205
-               &nabla; \u2207 &isin; \u2208 &notin; \u2209 &ni; \u220B &prod; \u220F
-               &sum; \u2211 &minus; \u2212 &lowast; \u2217 &radic; \u221A
-               &prop; \u221D &infin; \u221E &ang; \u2220 &and; \u2227 &or; \u2228
-               &cap; \u2229 &cup; \u222A &int; \u222B &there4; \u2234 &sim; \u223C
-               &cong; \u2245 &asymp; \u2248 &ne; \u2260 &equiv; \u2261 &le; \u2264
-               &ge; \u2265 &sub; \u2282 &sup; \u2283 &nsub; \u2284 &sube; \u2286
-               &supe; \u2287 &oplus; \u2295 &otimes; \u2297 &perp; \u22A5
-               &sdot; \u22C5 &lceil; \u2308 &rceil; \u2309 &lfloor; \u230A
-               &rfloor; \u230B &lang; \u2329 &rang; \u232A &loz; \u25CA
-               &spades; \u2660 &clubs; \u2663 &hearts; \u2665 &diams; \u2666
-               &quot; \x22 &amp; \x26 &lt; \x3C &gt; \x3E O&Elig; \u152 &oelig; \u153
-               &Scaron; \u160 &scaron; \u161 &Yuml; \u178 &circ; \u2C6
-               &tilde; \u2DC &ensp; \u2002 &emsp; \u2003 &thinsp; \u2009
-               &zwnj; \u200C &zwj; \u200D &lrm; \u200E &rlm; \u200F &ndash; \u2013
-               &mdash; \u2014 &lsquo; \u2018 &rsquo; \u2019 &sbquo; \u201A
-               &ldquo; \u201C &rdquo; \u201D &bdquo; \u201E &dagger; \u2020
-               &Dagger; \u2021 &permil; \u2030 &lsaquo; \u2039 &rsaquo; \u203A
-               &euro; \u20AC &apos; \u0027 &lrm; "" &rlm; "" &#8236; "" &#8237; ""
-               &#8238; "" &#8212; \u2014
-  };
+   # code below is neccessary to prevent numerous html markups
+   # from appearing in the output (ie, &quot;, &#5671;, etc)
+   # stolen (borrowed is a better term) from perplexa's urban
+   # dictionary script..
+   if {![string match *&* $text]} {return $text}
+   if {[string match "*;*" $char]} {set char [string trim $char {;}] }
+   set escapes {
+		&nbsp; \xa0 &iexcl; \xa1 &cent; \xa2 &pound; \xa3 &curren; \xa4
+		&yen; \xa5 &brvbar; \xa6 &sect; \xa7 &uml; \xa8 &copy; \xa9
+		&ordf; \xaa &laquo; \xab &not; \xac &shy; \xad &reg; \xae
+		&macr; \xaf &deg; \xb0 &plusmn; \xb1 &sup2; \xb2 &sup3; \xb3
+		&acute; \xb4 &micro; \xb5 &para; \xb6 &middot; \xb7 &cedil; \xb8
+		&sup1; \xb9 &ordm; \xba &raquo; \xbb &frac14; \xbc &frac12; \xbd
+		&frac34; \xbe &iquest; \xbf &Agrave; \xc0 &Aacute; \xc1 &Acirc; \xc2
+		&Atilde; \xc3 &Auml; \xc4 &Aring; \xc5 &AElig; \xc6 &Ccedil; \xc7
+		&Egrave; \xc8 &Eacute; \xc9 &Ecirc; \xca &Euml; \xcb &Igrave; \xcc
+		&Iacute; \xcd &Icirc; \xce &Iuml; \xcf &ETH; \xd0 &Ntilde; \xd1
+		&Ograve; \xd2 &Oacute; \xd3 &Ocirc; \xd4 &Otilde; \xd5 &Ouml; \xd6
+		&times; \xd7 &Oslash; \xd8 &Ugrave; \xd9 &Uacute; \xda &Ucirc; \xdb
+		&Uuml; \xdc &Yacute; \xdd &THORN; \xde &szlig; \xdf &agrave; \xe0
+		&aacute; \xe1 &acirc; \xe2 &atilde; \xe3 &auml; \xe4 &aring; \xe5
+		&aelig; \xe6 &ccedil; \xe7 &egrave; \xe8 &eacute; \xe9 &ecirc; \xea
+		&euml; \xeb &igrave; \xec &iacute; \xed &icirc; \xee &iuml; \xef
+		&eth; \xf0 &ntilde; \xf1 &ograve; \xf2 &oacute; \xf3 &ocirc; \xf4
+		&otilde; \xf5 &ouml; \xf6 &divide; \xf7 &oslash; \xf8 &ugrave; \xf9
+		&uacute; \xfa &ucirc; \xfb &uuml; \xfc &yacute; \xfd &thorn; \xfe
+		&yuml; \xff &fnof; \u192 &Alpha; \u391 &Beta; \u392 &Gamma; \u393 &Delta; \u394
+		&Epsilon; \u395 &Zeta; \u396 &Eta; \u397 &Theta; \u398 &Iota; \u399
+		&Kappa; \u39A &Lambda; \u39B &Mu; \u39C &Nu; \u39D &Xi; \u39E
+		&Omicron; \u39F &Pi; \u3A0 &Rho; \u3A1 &Sigma; \u3A3 &Tau; \u3A4
+		&Upsilon; \u3A5 &Phi; \u3A6 &Chi; \u3A7 &Psi; \u3A8 &Omega; \u3A9
+		&alpha; \u3B1 &beta; \u3B2 &gamma; \u3B3 &delta; \u3B4 &epsilon; \u3B5
+		&zeta; \u3B6 &eta; \u3B7 &theta; \u3B8 &iota; \u3B9 &kappa; \u3BA
+		&lambda; \u3BB &mu; \u3BC &nu; \u3BD &xi; \u3BE &omicron; \u3BF
+		&pi; \u3C0 &rho; \u3C1 &sigmaf; \u3C2 &sigma; \u3C3 &tau; \u3C4
+		&upsilon; \u3C5 &phi; \u3C6 &chi; \u3C7 &psi; \u3C8 &omega; \u3C9
+		&thetasym; \u3D1 &upsih; \u3D2 &piv; \u3D6 &bull; \u2022
+		&hellip; \u2026 &prime; \u2032 &Prime; \u2033 &oline; \u203E
+		&frasl; \u2044 &weierp; \u2118 &image; \u2111 &real; \u211C
+		&trade; \u2122 &alefsym; \u2135 &larr; \u2190 &uarr; \u2191
+		&rarr; \u2192 &darr; \u2193 &harr; \u2194 &crarr; \u21B5
+		&lArr; \u21D0 &uArr; \u21D1 &rArr; \u21D2 &dArr; \u21D3 &hArr; \u21D4
+		&forall; \u2200 &part; \u2202 &exist; \u2203 &empty; \u2205
+		&nabla; \u2207 &isin; \u2208 &notin; \u2209 &ni; \u220B &prod; \u220F
+		&sum; \u2211 &minus; \u2212 &lowast; \u2217 &radic; \u221A
+		&prop; \u221D &infin; \u221E &ang; \u2220 &and; \u2227 &or; \u2228
+		&cap; \u2229 &cup; \u222A &int; \u222B &there4; \u2234 &sim; \u223C
+		&cong; \u2245 &asymp; \u2248 &ne; \u2260 &equiv; \u2261 &le; \u2264
+		&ge; \u2265 &sub; \u2282 &sup; \u2283 &nsub; \u2284 &sube; \u2286
+		&supe; \u2287 &oplus; \u2295 &otimes; \u2297 &perp; \u22A5
+		&sdot; \u22C5 &lceil; \u2308 &rceil; \u2309 &lfloor; \u230A
+		&rfloor; \u230B &lang; \u2329 &rang; \u232A &loz; \u25CA
+		&spades; \u2660 &clubs; \u2663 &hearts; \u2665 &diams; \u2666
+		&quot; \x22 &amp; \x26 &lt; \x3C &gt; \x3E O&Elig; \u152 &oelig; \u153
+		&Scaron; \u160 &scaron; \u161 &Yuml; \u178 &circ; \u2C6
+		&tilde; \u2DC &ensp; \u2002 &emsp; \u2003 &thinsp; \u2009
+		&zwnj; \u200C &zwj; \u200D &lrm; \u200E &rlm; \u200F &ndash; \u2013
+		&mdash; \u2014 &lsquo; \u2018 &rsquo; \u2019 &sbquo; \u201A
+		&ldquo; \u201C &rdquo; \u201D &bdquo; \u201E &dagger; \u2020
+		&Dagger; \u2021 &permil; \u2030 &lsaquo; \u2039 &rsaquo; \u203A
+		&euro; \u20AC &apos; \u0027 &lrm; "" &rlm; "" &#8236; "" &#8237; ""
+		&#8238; ""
+   };
+  if {![string equal -nocase "utf-8" $char]} { set text [string map [list "\]" "\\\]" "\[" "\\\[" "\$" "\\\$" "\\" "\\\\"] [string map $escapes $text]] }
   if {![string equal $char [encoding system]]} { set text [encoding convertfrom $char $text] }
-  set text [string map [list "\]" "\\\]" "\[" "\\\[" "\$" "\\\$" "\\" "\\\\"] [string map $escapes $text]]
+  if {[string equal -nocase "utf-8" $char]} { set text [string map [list "\]" "\\\]" "\[" "\\\[" "\$" "\\\$" "\\" "\\\\"] [string map $escapes $text]] }
   regsub -all -- {&#([[:digit:]]{1,5});} $text {[format %c [string trimleft "\1" "0"]]} text
   regsub -all -- {&#x([[:xdigit:]]{1,4});} $text {[format %c [scan "\1" %x]]} text
-  regsub -all -- {\\x([[:xdigit:]]{1,2})} $text {[format %c [scan "\1" %x]]} text
   set text [subst "$text"]
   if {![string equal $char [encoding system]]} { set text [encoding convertto $char $text] }
   return $text
 }
 
 proc webbytiny {url type} {
-  set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
-  set http [::http::config -useragent $ua -urlencoding "utf-8"]
-  switch -- $type {
-    4 { set type [rand 4] }
-    5 { if {![info exists ::webbyCount]} {
-          set ::webbyCount 0
-          set type 0
-        } else {
-          set type [expr {[incr ::webbyCount] % 4}]
-        }
-      }
-  } 
-  switch -- $type {
-    0 { set query "http://tinyurl.com/api-create.php?[http::formatQuery url $url]" }
-    1 { set query "http://is.gd/api.php?[http::formatQuery longurl $url]" }
-    2 { set query "http://is.gd/api.php?[http::formatQuery longurl $url]" }
-    3 { set query "http://is.gd/api.php?[http::formatQuery longurl $url]" }
-  }
-  set token [http::geturl $query -timeout 3000]
-  upvar #0 $token state
-  if {[string length $state(body)]} { return [string map {"\n" ""} $state(body)] }
-  return $url
+   set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
+   set http [::http::config -useragent $ua -urlencoding "utf-8"]
+   switch -- $type {
+     4 { set type [rand 4] }
+     5 { if {![info exists ::webbyCount]} {
+           set ::webbyCount 0
+           set type 0
+         } else {
+           set type [expr {[incr ::webbyCount] % 4}]
+         }
+       }
+   } 
+   switch -- $type {
+     0 { set query "http://tinyurl.com/api-create.php?[http::formatQuery url $url]" }
+     1 { set query "http://is.gd/api.php?[http::formatQuery longurl $url]" }
+     2 { set query "http://is.gd/api.php?[http::formatQuery longurl $url]" }
+     3 { set query "http://is.gd/api.php?[http::formatQuery longurl $url]" }
+   }
+   set token [http::geturl $query -timeout 3000]
+   upvar #0 $token state
+   if {[string length $state(body)]} { return [string map {"\\n" ""} $state(body)] }
+   return $url
+}
+
+proc webbyTime {stamp} {
+	if {[catch { set ago [duration [expr {[clock seconds] - [clock scan "$stamp"] - $::webbyTimeAdjust}]] }]} {
+		set ago [duration [expr {[clock seconds] - [clock scan "[join [lrange [split $stamp] 0 end-1]]"] - $::webbyTimeAdjust}]]
+	}
+	set ago [string map {" years " "y, " " year " "y, " " weeks" "w, " " week" "w, " " days" "d, " " day" "d, " " hours" "h, " " hour" "h, " " minutes" "m, " " minute" "m, " " seconds" "s, " " second" "s,"} $ago]
+	return "[string trim $ago ", "] ago"
 }
 
 # LINE_WRAP
@@ -901,266 +1013,130 @@ namespace eval idna {}
 ##########################################################################
 
 proc idna::domain_toascii {domain} {
-  #set domain [string tolower $domain]
-  set parts [split $domain "\u002E\u3002\uFF0E\uFF61"]
-  set res {}
-  foreach p $parts {
-    set r [toascii $p]
-    lappend res $r
-  }
-  return [join $res .]
+    #set domain [string tolower $domain]
+    set parts [split $domain "\u002E\u3002\uFF0E\uFF61"]
+    set res {}
+    foreach p $parts {
+	set r [toascii $p]
+	lappend res $r
+    }
+    return [join $res .]
 }
 
 ##########################################################################
 
 proc idna::toascii {name} {
-  # TODO: Steps 2, 3 and 5 from RFC3490
-  if {![string is ascii $name]} {
-    set name [punycode_encode $name]
-    set name "xn--$name"
-  }
-  return $name
+    # TODO: Steps 2, 3 and 5 from RFC3490
+
+    if {![string is ascii $name]} {
+	set name [punycode_encode $name]
+	set name "xn--$name"
+    }
+    return $name
 }
 
 ##########################################################################
 
 proc idna::punycode_encode {input} {
-  set base 36
-  set tmin 1
-  set tmax 26
-  set skew 38
-  set damp 700
-  set initial_bias 72
-  set initial_n 0x80
+    set base 36
+    set tmin 1
+    set tmax 26
+    set skew 38
+    set damp 700
+    set initial_bias 72
+    set initial_n 0x80
 
-  set n $initial_n
-  set delta 0
-  set out 0
-  set bias $initial_bias
-  set output ""
-  set input_length [string length $input]
-  set nonbasic {}
-
-  for {set j 0} {$j < $input_length} {incr j} {
-    set c [string index $input $j]
-    if {[string is ascii $c]} {
-        append output $c
-    } else {
-        lappend nonbasic $c
-    }
-  }
-
-  set nonbasic [lsort -unique $nonbasic]
-
-  set h [set b [string length $output]];
-
-  if {$b > 0} {
-    append output -
-  }
-
-  while {$h < $input_length} {
-    set m [scan [string index $nonbasic 0] %c]
-    set nonbasic [lrange $nonbasic 1 end]
-    incr delta [expr {($m - $n) * ($h + 1)}]
-    set n $m
+    set n $initial_n
+    set delta 0
+    set out 0
+    set bias $initial_bias
+    set output ""
+    set input_length [string length $input]
+    set nonbasic {}
 
     for {set j 0} {$j < $input_length} {incr j} {
-      set c [scan [string index $input $j] %c]
-      if {$c < $n} {
-        incr delta
-      } elseif {$c == $n} {
-        for {set q $delta; set k $base} {1} {incr k $base} {
-          set t [expr {$k <= $bias ? $tmin :
-                       $k >= $bias + $tmax ? $tmax : $k - $bias}]
-          if {$q < $t} break;
-          append output [punycode_encode_digit [expr {$t + ($q - $t) % ($base - $t)}]]
-          set q [expr {($q - $t) / ($base - $t)}]
-        }
-        append output [punycode_encode_digit $q]
-        set bias [punycode_adapt $delta [expr {$h + 1}] [expr {$h == $b}]]
-        set delta 0
-        incr h
-      }
+	set c [string index $input $j]
+	if {[string is ascii $c]} {
+	    append output $c
+	} else {
+	    lappend nonbasic $c
+	}
     }
-    incr delta
-    incr n
-  }
-  return $output;
+
+    set nonbasic [lsort -unique $nonbasic]
+
+    set h [set b [string length $output]];
+
+    if {$b > 0} {
+	append output -
+    }
+
+    while {$h < $input_length} {
+	set m [scan [string index $nonbasic 0] %c]
+	set nonbasic [lrange $nonbasic 1 end]
+
+	incr delta [expr {($m - $n) * ($h + 1)}]
+	set n $m
+
+	for {set j 0} {$j < $input_length} {incr j} {
+	    set c [scan [string index $input $j] %c]
+
+	    if {$c < $n} {
+		incr delta
+	    } elseif {$c == $n} {
+		for {set q $delta; set k $base} {1} {incr k $base} {
+		    set t [expr {$k <= $bias ? $tmin :
+				 $k >= $bias + $tmax ? $tmax : $k - $bias}]
+		    if {$q < $t} break;
+		    append output \
+			[punycode_encode_digit \
+			     [expr {$t + ($q - $t) % ($base - $t)}]]
+		    set q [expr {($q - $t) / ($base - $t)}]
+		}
+
+		append output [punycode_encode_digit $q]
+		set bias [punycode_adapt \
+			      $delta [expr {$h + 1}] [expr {$h == $b}]]
+		set delta 0
+		incr h
+	    }
+	}
+	
+	incr delta
+	incr n
+    }
+
+    return $output;
 }
 
 ##########################################################################
 
 proc idna::punycode_adapt {delta numpoints firsttime} {
-  set base 36
-  set tmin 1
-  set tmax 26
-  set skew 38
-  set damp 700
+    set base 36
+    set tmin 1
+    set tmax 26
+    set skew 38
+    set damp 700
 
-  set delta [expr {$firsttime ? $delta / $damp : $delta >> 1}]
-  incr delta [expr {$delta / $numpoints}]
+    set delta [expr {$firsttime ? $delta / $damp : $delta >> 1}]
+    incr delta [expr {$delta / $numpoints}]
 
-  for {set k 0} {$delta > (($base - $tmin) * $tmax) / 2}  {incr k $base} {
-      set delta [expr {$delta / ($base - $tmin)}];
-  }
+    for {set k 0} {$delta > (($base - $tmin) * $tmax) / 2}  {incr k $base} {
+	set delta [expr {$delta / ($base - $tmin)}];
+    }
 
-  return [expr {$k + ($base - $tmin + 1) * $delta / ($delta + $skew)}]
+    return [expr {$k + ($base - $tmin + 1) * $delta / ($delta + $skew)}]
 }
 
 ##########################################################################
 
 proc idna::punycode_encode_digit {d} {
-  return [format %c [expr {$d + 22 + 75 * ($d < 26)}]]
+    return [format %c [expr {$d + 22 + 75 * ($d < 26)}]]
 }
 
 ##########################################################################
-# DurbyEncode - Encoding system with debugging.
-# proc call: durby_encode <data> <debug> <swap> <char1> ?char2?
-# <data> = http data
-# <debug> = [1=On 0=Off] - Output debugging information via putlog.
-# <swap> = [1=On 0=Off] - Swap charsets
-# <char1> = first charset - (charset from meta if 2 charsets are specified)
-# ?char2? = Optional charset - (charset from http if 2 charsets are specified)
-###
-proc durby_encode {data dbg swap char1 {char2 "none"}} {
-    set system [encoding system]
-    set char1 [http::CharsetToEncoding $char1]
-    if {($char2 != "none")} {set char2 [http::CharsetToEncoding $char2]}
-    if {($char2 == "none")} {set char2 $char1} ;#creates a match to skip conflict handling.
-    if {($char1 != $char2) && ($::webbyFixDetection > 0)} {
-        if {($dbg == 1)} {putlog "conflicting charsets found: $char1 & $char2."}
-        if {($swap == 1)} {set swapc $char2 ; set char2 $char1 ; set char1 $swapc}
-        if {($::webbyFixDetection == 2)} {
-            if {($dbg == 1)} {putlog "using meta charset $char1"}
-            set charset $char1
-        } else {
-            if {($dbg == 1)} {putlog "using http charset $char2"}
-            set charset $char2
-        }
-        if {$::webbyShowMisdetection > 0 } {
-          putserv "privmsg $::curchan :\002webby\002: Encoding Conflict: $char1 vs $char2. Correcting to $charset."
-        }
-        set data [encoding convertfrom $charset $data]
-        if {![is_patched]} { set data [encoding convertto utf-8 $data] ; if {($dbg == 1)} {putlog "performing extra encoding for unpatched bot."}}
-        return $data
-    }
-    switch -glob [package provide http] {
-	"2.5.*" {
-	    if {($dbg == 1)} {putlog "http 2.5.x detected"}
-	    if {[is_patched]} {
-		if {($dbg == 1)} {putlog "bot is patched."}
-		if {($system == "utf-8")} {
-		    if {($dbg == 1)} {putlog "system is utf-8"}
-                    if {![string match -nocase "utf-8" $char2]} {
-                      if {($dbg == 1)} {putlog "$char2 != utf-8"}
-                      set data [encoding convertto utf-8 $data]
-                    } else {
-                      if {($dbg == 1)} {putlog "$char2 == utf-8"}
-                    }
-		} else {
-		    if {($dbg == 1)} {putlog "system is not utf-8"}
-                    if {[string match -nocase "utf-8" $char2]} {
-                      if {($dbg == 1)} {putlog "$char2 == utf-8"}
-                      set data [encoding convertto $char2 $data]
-                    } else {
-                      if {($dbg == 1)} {putlog "$char2 != utf-8"}
-                      set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
-                    }
-		}
-	    } else {
-		if {($dbg == 1)} {putlog "bot is not patched"}
-		if {($system == "utf-8")} {
-		    if {($dbg == 1)} {putlog "system is utf-8"}
-                    if {[string match -nocase "utf-8" $char2]} {
-                      if {($dbg == 1)} {putlog "char2 == utf-8"}
-                      set data [encoding convertto $char2 $data]
-                    } else {
-                      if {($dbg == 1)} {putlog "char2 != utf-8"}
-                      set data [encoding convertto "utf-8" [encoding convertfrom $char2 $data]]
-                    }
-		} else {
-		    if {($dbg == 1)} {putlog "system is not utf-8"}
-		}
-	    }
-	}
-	"2.7.*" {
-	    if {($dbg == 1)} {putlog "http 2.7.x detected"}
-	    if {[is_patched]} {
-		if {($dbg == 1)} {putlog "bot is patched"}
-		if {($system == "utf-8")} {
-		    if {($dbg == 1)} {putlog "system is utf-8"}
-                    if {![string match -nocase "utf-8" $char2]} {
-                      if {($dbg == 1)} {putlog "$char2 != utf-8"}
-                    } else {
-                      if {($dbg == 1)} {putlog "$char2 == utf-8"}
-                        #set data [encoding convertfrom utf-8 $data]
-                    }
-		} else {
-		    if {($dbg == 1)} {putlog "system is not utf-8"}
-                    if {[string match -nocase "utf-8" $char2]} {
-                      if {($dbg == 1)} {putlog "char2 == utf-8"}
-                    } else {
-                      if {($dbg == 1)} {putlog "char2 != utf-8"}
-                    }
-		}
-	    } else {
-		if {($dbg == 1)} {putlog "bot is not patched"}
-		if {($system == "utf-8")} {
-		    if {($dbg == 1)} {putlog "system is utf-8"}
-                    if {[string match -nocase "utf-8" $char2]} {
-                      if {($dbg == 1)} {putlog "char2 == utf-8"}
-                      set data [encoding convertto [string tolower $char2] $data]
-                    } else {
-                      if {($dbg == 1)} {putlog "char2 != utf-8"}
-                      set data [encoding convertto "utf-8" [encoding convertfrom [string tolower $char2] $data]]
-                    }
-		} else {
-		    if {($dbg == 1)} {putlog "system is not utf-8"}
-		}
-	    }
-	}
-    }
-    return $data
-}
-# http::CharsetToEncoding --
-#
-#   Tries to map a given IANA charset to a tcl encoding.  If no encoding
-#   can be found, returns binary.
-#
 
-proc CharsetToEncoding {charset} {
-	variable encodings
+putlog "webby v1.6 has been loaded."
 
-	set charset [string tolower $charset]
-	if {[regexp {iso-?8859-([0-9]+)} $charset -> num]} {
-		set encoding "iso8859-$num"
-	} elseif {[regexp {iso-?2022-(jp|kr)} $charset -> ext]} {
-		set encoding "iso2022-$ext"
-	} elseif {[regexp {shift[-_]?js} $charset]} {
-		set encoding "shiftjis"
-	} elseif {[regexp {(?:windows|cp)-?([0-9]+)} $charset -> num]} {
-		set encoding "cp$num"
-	} elseif {$charset eq "us-ascii"} {
-		set encoding "ascii"
-	} elseif {[regexp {(?:iso-?)?lat(?:in)?-?([0-9]+)} $charset -> num]} {
-		switch -- $num {
-			5 {set encoding "iso8859-9"}
-			1 - 2 - 3 {
-				set encoding "iso8859-$num"
-			}
-		}
-	} else {
-		# other charset, like euc-xx, utf-8,...  may directly map to encoding
-		set encoding $charset
-	}
-	set idx [lsearch -exact $encodings $encoding]
-	if {$idx >= 0} {
-		return $encoding
-	} else {
-		return "binary"
-	}
-}
-###
-# DurbyEncode - Encoding system with debugging.
-##########################################################################
-putlog "Durby v0.2 has been loaded."
+
+
