@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.4 + #
+#                                                                    + 0.2.7 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -34,18 +34,16 @@
 # display the results at once instead of posting each result individually when #
 # urlwatch finds multiple links. (Verbose mode disables this feature).         #
 #                                                                              #
-# Encoding Debugging - When having issues with characters not displaying       #
-# correctly you can use "!durby --encoding-debug <url>" to log extra output    #
-# which might help solve encoding bugs.                                        #
-#                                                                              #
 # Usage:                                                                       #
 #   .chanset #channel +durby                                                   #
 #   !durby website.here.com [--html] [--header] [--xheader]                    #
 #       [--post] [--override] [--nostrip] [--swap]                             #
-#       [--regexp regexp-here--]  [--verbose] [--encoding-debug]               #
+#       [--regexp regexp-here--]  [--verbose]                                  #
 #                                                                              #
 #   Or simply post a url in channel if urlwatch is on (is by default)          #
 #                                                                              #
+# Todo: store when urls were posted and who posted them. Allow script to post  #
+# the information along with results when urls match an already posted url.    #
 ################################################################################
 #!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #!!!!!#################################################################!!!!!!!!#
