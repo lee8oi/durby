@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.7 + #
+#                                                                    + 0.2.8 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -25,6 +25,9 @@
 #                                                                              #
 # Pattern Ignore - Allows you to configure the script to ignore urls that      #
 # match predefined ignore patterns.                                            #
+#                                                                              #
+# Nick Ignore - Allows you to configure the script to ignore requests & urls   #
+# posted in channel by certain nicks. Useful for ignoring other bots.          #
 #                                                                              #
 # Verbose Mode - Can be enabled by default or used on demand with the          #
 # --verbose switch to append the urls type info and description to the results.#
@@ -191,6 +194,8 @@ variable webbyFixDetection 2
 # channel, and will show corrections made to any encodings.
 # --- [ 0 never / 1 when the conflict happens / 2 always ]
 variable webbyShowMisdetection 0
+#
+
 # ignore urls matching ignore pattern?
 # enabling this option will set webby to ignore urls that match
 # any pattern in the patterns list.
@@ -215,6 +220,20 @@ variable patterns {
   *.rar
   *.bmp
   #*porn.com*
+}
+
+# Should we ignore nicks?
+# set this to 0 to disable. 1 to enable
+#                         +-+
+variable durbyIgnoreNicks  1
+#                         +-+
+#
+
+# Which nicks should we ignore?
+# nicks added to this list will be ignored.
+variable ignorenicks {
+  dukelovett
+  dukelovett2
 }
 
 # Show urls in output messages?
@@ -315,6 +334,13 @@ proc weburlwatch {nick host user chan text} {
               }
             }
           }
+          if {$::durbyIgnoreNicks > 0} {
+            foreach nicks $::ignorenicks {
+              if {[string match -nocase $nicks $nick]} {
+                return 0
+              }
+            }
+          }
           set ::urlwatchtoken 1
           set weburlwatch(last) [unixtime]
           set weburlwatch(titlegrab) 1
@@ -358,10 +384,18 @@ proc webby {nick uhost handle chan site} {
     set w5 0
     regsub -nocase -- {--regexp .*?--} $site "" site
   }
-  #check ignore list
+  #check ignore lists
   if {$::durbyPatternIgnore > 0} {
     foreach pattern $::patterns {
       if {[string match -nocase $pattern $site]} {
+        return 0
+      }
+    }
+  }
+  #check nick ignore list
+  if {$::durbyIgnoreNicks > 0} {
+    foreach nicks $::ignorenicks {
+      if {[string match -nocase $nicks $nick]} {
         return 0
       }
     }
@@ -1136,7 +1170,4 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 
-putlog "webby v1.6 has been loaded."
-
-
-
+putlog "Durby v0.2.8 has been loaded."
