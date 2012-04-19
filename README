@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.7 + #
+#                                                                    + 0.2.8 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -25,6 +25,9 @@
 #                                                                              #
 # Pattern Ignore - Allows you to configure the script to ignore urls that      #
 # match predefined ignore patterns.                                            #
+#                                                                              #
+# Nick Ignore - Allows you to configure the script to ignore requests & urls   #
+# posted in channel by certain nicks. Useful for ignoring other bots.          #
 #                                                                              #
 # Verbose Mode - Can be enabled by default or used on demand with the          #
 # --verbose switch to append the urls type info and description to the results.#
