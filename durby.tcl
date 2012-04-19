@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.8 + #
+#                                                                    + 0.2.9 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -113,7 +113,8 @@
 #!!!!!#################################################################!!!!!!!!#
 #!!!!!!!!!!!!!!!!!!!!!!!!!{ORIGINAL WEBBY HEADER}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 ################################################################################
-# CONFIGURATION
+# ---> Start of config; setting begins
+
 # do you want to display header attributes always?
 # --- [ 0 no / 1 yes ]
 variable webbyheader 0
@@ -194,8 +195,6 @@ variable webbyFixDetection 2
 # channel, and will show corrections made to any encodings.
 # --- [ 0 never / 1 when the conflict happens / 2 always ]
 variable webbyShowMisdetection 0
-#
-
 # ignore urls matching ignore pattern?
 # enabling this option will set webby to ignore urls that match
 # any pattern in the patterns list.
@@ -264,21 +263,20 @@ variable durbyUrlWatch  1
 #                           +-+
 variable durbyCollectTitles  1
 #                           +-+
-#
 # <--- end of config; script begins
 
 package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
 if {([lsearch [info commands] zlib] == -1) && ([catch {package require zlib} error] !=0)} {
   if {([catch {package require Trf} error] == 0) || ([lsearch [info commands] zip] != -1)} {
-    putlog "Webby: Found trf package. Fast lane activated!"
+    putlog "durby: Found trf package. Fast lane activated!"
     set webbyTrf 1
   } else {
-    putlog "Webby: Cannot find zlib or trf package! Gzipped url queries will not be used. Enjoy the slow lane! :P"
+    putlog "durby: Cannot find zlib or trf package! Gzipped url queries will not be used. Enjoy the slow lane! :P"
     set webbyNoGzip 1
   }
 } else {
-  putlog "Webby: Found zlib package. Fast lane activated!"
+  putlog "durby: Found zlib package. Fast lane activated!"
 }
 set weburlwatch(titlegrab) 0
 set weburlwatch(pubmflags) "-|-"
@@ -287,33 +285,11 @@ set weburlwatch(last) 111
 set weburlwatch(length) 5
 set weburlwatch(watch) 1
 variable urlwatchtoken 0
+
 setudef flag durby
 bind pub - !webby webby
-bind pub - !durby webby
-bind pub - !web webby
-bind pub - !webbycrumble webbycrumble
-bind pub - !webbycookie webbycookie
 bind pubm - {*://*} weburlwatch
-proc webbycrumble {nick uhost handle chan text} {
-  if {![channel get $chan webby]} { return }
-  global webbyCookie
-  putserv "privmsg $chan :\002durby\002: Crumbling \"$::webbyCookies\"..."
-  set webbyCookie ""
-}
 
-proc webbycookie {nick uhost handle chan text} {
-  if {![channel get $chan webby]} { return }
-  global webbyCookie
-  if {[info exists webbyCookie]} {
-    if {[string length $webbyCookie]} {
-      putserv "privmsg $chan :\002durby\002: Cookie \"$::webbyCookie\"..."
-    } else {
-      putserv "privmsg $chan :\002durby\002: Cookie is empty."
-    }
-  } else {
-    putserv "privmsg $chan :\002durby\002: Cookie does not exist."
-  }
-}
 proc weburlwatch {nick host user chan text} {
   # watch for web urls in channel
   variable weburlwatch
@@ -354,15 +330,8 @@ proc weburlwatch {nick host user chan text} {
   # change to return 0 if you want the pubm trigger logged additionally..
   return 1
 }
-
 proc webby {nick uhost handle chan site} {
-  if {![channel get $chan webby]} { return }
-  global webbyCookie
-  if {![info exists ::webbyCookie]} {
-    set ::webbyCookie "" ; set cookies ""
-  } else {
-    set cookies $::webbyCookie
-  }
+  if {![channel get $chan durby]} { return }
   if {[regsub -nocase -all -- {--verbose} $site "" site]} { set vf 0 }
   if {[regsub -nocase -all -- {--header} $site "" site]} { set w1 0 }
   if {[regsub -nocase -all -- {--validate} $site "" site]} { set w1 0 ; set w2 0 ; set w3 0 ; set w10 0 }
@@ -454,21 +423,13 @@ proc webby {nick uhost handle chan site} {
     if {[info exists w10]} {
        catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers $gzp -validate 1 -timeout 10000]} error
     } else {
-       if {[string length $cookies]} {
-     catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers "$gzp Cookie $cookies" -timeout 10000]} error
-       } else {
-     catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers $gzp -timeout 10000]} error
-       }
-     }
+       catch {set http [::http::geturl "$url$suburl" -query "[join $post "&"]" -headers $gzp -timeout 10000]} error
+    }
   } else {
     if {[info exists w10]} {
       catch {set http [::http::geturl "$fullquery" -headers $gzp -validate 1 -timeout 10000]} error
     } else {
-       if {[string length $cookies]} {
-     catch {set http [::http::geturl "$fullquery" -headers "$gzp Cookie $cookies" -timeout 10000]} error
-       } else {
-         catch {set http [::http::geturl "$fullquery" -headers $gzp -timeout 10000]} error
-       }
+      catch {set http [::http::geturl "$fullquery" -headers $gzp -timeout 10000]} error
     }
     set url $fullquery ; set query ""
   }
@@ -623,29 +584,29 @@ proc webby {nick uhost handle chan site} {
     }
   }
   if {[regexp -nocase {"Content-Type" content=".*?; charset=(.*?)".*?>} $html - char]} {
-    set char [string map {"\\n" ""} [string trim [string trim $char "\"' /"] {;}]]
+    set char [string trim [string trim $char "\"' /"] {;}]
     regexp {^(.*?)"} $char - char
     set mset $char
     if {![string length $char]} { set char "None Given" ; set char2 "None Given" }
     set char2 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $char]]
   } else {
     if {[regexp -nocase {<meta content=".*?; charset=(.*?)".*?>} $html - char]} {
-      set char [string map {"\\n" ""} [string trim $char "\"' /"]]
+      set char [string trim $char "\"' /"]
       regexp {^(.*?)"} $char - char
       set mset $char
       if {![string length $char]} { set char "None Given" ; set char2 "None Given" }
       set char2 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $char]]
     } elseif {[regexp -nocase {encoding="(.*?)"} $html - char]} {
-      set mset [string map {"\\n" ""} $char] ; set char [string trim $char]
+      set mset $char ; set char [string trim $char]
       if {![string length $char]} { set char "None Given" ; set char2 "None Given" }
       set char2 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $char]]
     } else {
       set char "None Given" ; set char2 "None Given" ; set mset "None Given"
     }
   }
-  set char3 [string map {"\\n" ""} [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} [string trim $state(charset) {;}]]]]
+  set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
   if {[string equal $char $state(charset)] && [string equal $char $char2] && ![string equal -nocase "none given" $char]} {
-    set char [string map {"\\n" ""} [string trim $state(charset) {;}]]
+    set char [string trim $state(charset) {;}]
     set flaw ""
   } else {
     if {![string equal -nocase $char2 $char3] && ![string equal -nocase "none given" $char2] && $::webbyFixDetection > 0} {
@@ -776,7 +737,7 @@ proc webby {nick uhost handle chan site} {
       set desc ""
     }
   } else { set desc "" }
-  set webbyCookie $cookies
+
   # SPAM
   if {$::webbyShowMisdetection > 0} {
     if {[string length $flaw]} { putserv "privmsg $chan :$flaw" }
@@ -867,7 +828,7 @@ proc webby {nick uhost handle chan site} {
 
 proc webbyConflict {html in out type gz} {
   switch -- $type {
-    "1" {  set html [encoding convertfrom [string map {"\\n" ""} $out] $html]
+    "1" {  set html [encoding convertfrom $out $html]
 	     if {![string equal -nocase "utf-8" [encoding system]]} { set html [encoding convertto utf-8 $html] }
          }
     "2" {  set html [encoding convertfrom $out $html]
@@ -996,14 +957,12 @@ proc webbytiny {url type} {
    }
    set token [http::geturl $query -timeout 3000]
    upvar #0 $token state
-   if {[string length $state(body)]} { return [string map {"\\n" ""} $state(body)] }
+   if {[string length $state(body)]} { return [string map {"\n" ""} $state(body)] }
    return $url
 }
 
 proc webbyTime {stamp} {
-	if {[catch { set ago [duration [expr {[clock seconds] - [clock scan "$stamp"] - $::webbyTimeAdjust}]] }]} {
-		set ago [duration [expr {[clock seconds] - [clock scan "[join [lrange [split $stamp] 0 end-1]]"] - $::webbyTimeAdjust}]]
-	}
+	set ago [duration [expr {[clock seconds] - [clock scan "$stamp"] - $::webbyTimeAdjust}]]
 	set ago [string map {" years " "y, " " year " "y, " " weeks" "w, " " week" "w, " " days" "d, " " day" "d, " " hours" "h, " " hour" "h, " " minutes" "m, " " minute" "m, " " seconds" "s, " " second" "s,"} $ago]
 	return "[string trim $ago ", "] ago"
 }
@@ -1170,4 +1129,6 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 
-putlog "Durby v0.2.8 has been loaded."
+putlog "durby 0.2.9 has been loaded."
+
+
