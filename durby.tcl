@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.2.9 + #
+#                                                                    + 0.3.0 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -288,6 +288,7 @@ variable urlwatchtoken 0
 
 setudef flag durby
 bind pub - !webby webby
+bind pub - !durby webby
 bind pubm - {*://*} weburlwatch
 
 proc weburlwatch {nick host user chan text} {
@@ -1129,6 +1130,6 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 
-putlog "durby 0.2.9 has been loaded."
+putlog "durby 0.3.0 has been loaded."
 
 
