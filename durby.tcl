@@ -1,6 +1,6 @@
 ################################################################################
 # Copyleft ©2011 lee8oi@gmail.com                                    +-------+ #
-#                                                                    + 0.3.0 + #
+#                                                                    + 0.3.1 + #
 #                                                                    +-------+ #
 # Durby - https://github.com/lee8oi/durby                                      #
 #                                                                              #
@@ -748,8 +748,8 @@ proc webby {nick uhost handle chan site} {
   }
   if {($::webbyRegShow > 0) || ![info exists w5]} {
     set title [webbydescdecode $title $char3]
-    if {[string match -nocase "no title" $title] || ($title == "") && [info exists doctype]} {
-      set title "$doctype"
+    if {[string match -nocase "no title" $title] || ($title == "") && [info exists hv]} {
+      set title "$hv"
     }
     if {($::durbyShowUrls > 0)} {
       if {($::webbyShortType != 6)} {
@@ -1130,6 +1130,6 @@ proc idna::punycode_encode_digit {d} {
 
 ##########################################################################
 
-putlog "durby 0.3.0 has been loaded."
+putlog "durby 0.3.1 has been loaded."
 
 
